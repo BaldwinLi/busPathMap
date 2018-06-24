@@ -6,6 +6,18 @@ import VueRouter from 'vue-router'
 import App from './App'
 // import Home from './views/HelloFromVux'
 import router from '@/router'
+import {
+  AjaxPlugin,
+  AlertPlugin,
+  ConfirmPlugin
+  // AlertModule
+} from 'vux'
+// import { initKeyList } from './initKeyList';
+
+// cordova(App);
+Vue.use(AjaxPlugin)
+Vue.use(AlertPlugin)
+Vue.use(ConfirmPlugin)
 
 FastClick.attach(document.body)
 

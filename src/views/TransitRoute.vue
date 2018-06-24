@@ -1,38 +1,52 @@
 <template>
   <div class="hello">
-    <input type="text" speech x-webkit-speech/>
-    <map-container></map-container>
+    <!-- <input type="text" speech x-webkit-speech/> -->
+    <map-container :options="options" @onLoadComplete="loadComplete"></map-container>
   </div>
 </template>
 
 <script>
 import { isObject } from "lodash";
+import { XInput } from 'vux'
 import MapContainer from "@/components/map-container";
-import mapLoader from "@/helper/map-loader.js";
-import { busline, location } from "@/helper/map-loader.js";
 
 export default {
   name: "transit-route",
-  components: {
-    MapContainer
-  },
   data() {
     return {
-      msg: "Welcome to Your Vue.js App"
+      options: {
+        type: "BUS_LINE",
+        showType: "MAP_RESULT"
+      }
     };
+  },
+  components: {
+    MapContainer,
+    XInput
   },
   methods: {
     onSpeechChange(value) {
       alert(value);
+    },
+    loadComplete(event) {
+      // event.busline.getBusList(3);
+      if (event) {
+        for (var i = 0; i < event.getCurrentNumPois(); i++) {
+          const poi = event.getPoi(i);
+          if (poi.type == BMAP_POI_TYPE_BUSSTOP) {
+            busPoi = poi;
+          }
+        }
+      }
     }
   },
   mounted() {
-    mapLoader({type: 'BUS_LINE'}, (res) => {
-      setTimeout(() => {
-        busline.getBusList(3);
-        // location.search('高新园区');
-      });
-    });
+    // mapLoader({type: 'BUS_LINE'}, (res) => {
+    //   setTimeout(() => {
+    //     busline.getBusList(3);
+    //     // location.search('高新园区');
+    //   });
+    // });
   }
 };
 </script>
