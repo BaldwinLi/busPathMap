@@ -7,6 +7,7 @@
 
 <script>
 // import { TRANSIT_POLICY } from './map-config.js'
+import { forEach } from "lodash";
 let $scope;
 window["initMapContainer"] = () => {
   window["IMap"] = new BMap.Map("map-container");
@@ -46,12 +47,15 @@ window["initMapContainer"] = () => {
         renderOptions: {
           map: IMap
         },
-        policy: this.options.policy,
+        policy: $scope.options.policy,
         onSearchComplete: $scope.onTranitRouteSearchComplete
       });
       break;
   }
+  $scope.installPlugin();
   $scope.$emit("onLoadComplete", $scope);
+  $($scope.$refs.mapContainer).height($('body').height() + parseInt($scope.height || 0));
+  $($scope.$refs.mapContainer).width($('body').width() + parseInt($scope.width || 0));
 };
 
 import { mapGetters } from "vuex";
@@ -64,12 +68,17 @@ export default {
       transit: Object,
       geoc: Object,
       location: Object,
-      busPoi: Object
+      busPoi: Object,
+      plugins: []
     };
   },
   props: {
-    height: String,
-    width: String,
+    height: Number,
+    width: Number,
+    zoom: {
+      type: Number,
+      default: 14
+    },
     options: {
       type: Object,
       default() {
@@ -79,6 +88,20 @@ export default {
           policy: 0
         };
       }
+    },
+    pluginOptions: {
+      type: Array,
+      default() {
+        return [
+          {
+            plugin: "Scale",
+            option: {
+              anchor: "BOTTOM_LEFT",
+              offset: undefined
+            }
+          }
+        ];
+      }
     }
   },
   computed: {
@@ -86,12 +109,14 @@ export default {
   },
   watch: {
     height(height) {
-      this.$refs["mapContainer"] &&
-        (this.$refs["mapContainer"].style.height = height);
+      // this.$refs["mapContainer"] &&
+      //   (this.$refs["mapContainer"].style.height = height);
+      $('#map-container').height($('body').height() + parseInt(height || 0));
     },
     width(width) {
-      this.$refs["mapContainer"] &&
-        (this.$refs["mapContainer"].style.width = width);
+      // this.$refs["mapContainer"] &&
+      //   (this.$refs["mapContainer"].style.width = width);
+      $('#map-container').width($('body').width() + parseInt(width || 0));
     }
   },
   methods: {
@@ -132,13 +157,37 @@ export default {
           timeout: 4000,
           maximumAge: 3000,
           SDKLocation: true
-         }
+        }
       );
     },
     getCurrentPositionComplete(result) {
       const center = result.point || result.center;
-      window["IMap"].centerAndZoom(new BMap.Point(center.lng, center.lat), 12);
+      window["IMap"].centerAndZoom(
+        new BMap.Point(center.lng, center.lat),
+        this.zoom
+      );
       this.$emit("onGeolocationComplete", result);
+    },
+    installPlugin() {
+      forEach(this.pluginOptions, pluginOption => {
+        const plugin = new BMap[pluginOption.plugin + "Control"](
+          (pluginOption.option && {
+            anchor: window["BMAP_ANCHOR_" + (pluginOption.option.anchor || "")],
+            offset: new BMap.Size(...(pluginOption.option.offset || [0, 0])),
+            type: window["BMAP_" + pluginOption.option.type],
+            enableGeolocation: pluginOption.option.enableGeolocation
+          }) ||
+            {}
+        );
+        window["IMap"].addControl(plugin);
+        this.plugins.push(plugin);
+      });
+    },
+    uninstallPlugin() {
+      forEach(this.plugins, (plugin, index) => {
+        window["IMap"].removeControl(plugin);
+        delete this.plugins[index];
+      });
     }
   },
   beforeCreate() {

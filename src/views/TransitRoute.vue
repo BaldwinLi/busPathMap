@@ -1,28 +1,47 @@
 <template>
-  <div class="hello">
-    <!-- <input type="text" speech x-webkit-speech/> -->
-    <map-container :options="options" @onLoadComplete="loadComplete"></map-container>
+  <div class="trans-main">
+    <!-- speech x-webkit-speech -->
+    <cell primary="content">
+      <div slot="title" class="input-header">
+        <x-input type="text" placeholder="请输入起点" v-model="startPosition">
+          <i slot="label" class="iconfont icon-pointerbig position-label start"></i>
+        </x-input>
+        <x-input type="text" placeholder="请输入终点" v-model="endPosition">
+          <i slot="label" class="iconfont icon-pointerbig position-label end"></i>
+        </x-input>
+      </div>
+      <div slot class="input-body">
+        <i class="fa fa-exchange reverse-position" aria-hidden="true"></i>
+      </div>
+    </cell>
+    <map-container :options="options" :pluginOptions="commonPluginOptions" :height="-250" @onLoadComplete="loadComplete"></map-container>
   </div>
 </template>
 
 <script>
 import { isObject } from "lodash";
-import { XInput } from 'vux'
+import { XInput, Cell } from "vux";
 import MapContainer from "@/components/map-container";
+import { commonPluginOptions } from "@/components/map-config";
 
 export default {
   name: "transit-route",
   data() {
     return {
+      startPosition: "",
+      endPosition: "",
       options: {
-        type: "BUS_LINE",
-        showType: "MAP_RESULT"
-      }
+        type: "TRANSIT_SOLUTION",
+        showType: "MAP_RESULT",
+        policy: 0
+      },
+      commonPluginOptions
     };
   },
   components: {
     MapContainer,
-    XInput
+    XInput,
+    Cell
   },
   methods: {
     onSpeechChange(value) {
@@ -30,14 +49,14 @@ export default {
     },
     loadComplete(event) {
       // event.busline.getBusList(3);
-      if (event) {
-        for (var i = 0; i < event.getCurrentNumPois(); i++) {
-          const poi = event.getPoi(i);
-          if (poi.type == BMAP_POI_TYPE_BUSSTOP) {
-            busPoi = poi;
-          }
-        }
-      }
+      // if (event) {
+      //   for (var i = 0; i < event.getCurrentNumPois(); i++) {
+      //     const poi = event.getPoi(i);
+      //     if (poi.type == BMAP_POI_TYPE_BUSSTOP) {
+      //       busPoi = poi;
+      //     }
+      //   }
+      // }
     }
   },
   mounted() {
@@ -53,19 +72,26 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h1,
-h2 {
-  font-weight: normal;
+.trans-main {
+  font-size: 1.5rem;
 }
-ul {
-  list-style-type: none;
-  padding: 0;
+.input-header {
+  width: 22rem;
 }
-li {
-  display: inline-block;
-  margin: 0 10px;
+.input-body {
+  text-align: center;
 }
-a {
-  color: #42b983;
+.position-label {
+  margin: 1rem;
+  font-size: 1rem;
+}
+.position-label.start {
+  color: #00ff7f;
+}
+.position-label.end {
+  color: #ff3030;
+}
+.reverse-position {
+  font-size: 3rem;
 }
 </style>
