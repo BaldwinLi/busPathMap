@@ -171,6 +171,17 @@ export default {
   background-color: rgb(243, 241, 236);
   color: rgb(0, 0, 0);
   text-align: left;
-  height: 600px;
+  height: 450px;
 }
 </style>
+
+//启用数据库  
+webSettings.setDatabaseEnabled(true);    
+String dir = this.getApplicationContext().getDir("database", Context.MODE_PRIVATE).getPath(); 
+//启用地理定位  
+webSettings.setGeolocationEnabled(true);  
+//设置定位的数据库路径  
+webSettings.setGeolocationDatabasePath(dir);   
+//最重要的方法，一定要设置，这就是出不来的主要原因
+webSettings.setDomStorageEnabled(true);
+//配置权限（同样在WebChromeClient中实现）  
