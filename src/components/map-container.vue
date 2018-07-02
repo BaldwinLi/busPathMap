@@ -1,7 +1,7 @@
 <template>
   <div class="home-content">
-    <div ref="mapContainer" v-if="options.showType === 'MAP_RESULT'" id="map-container"></div>
-    <div ref="pathResult" v-if="options.showType === 'PATH_RESULT'" id="bus-path-result"></div>
+    <div ref="mapContainer" v-show="showMap" id="map-container"></div>
+    <div ref="pathResult" v-show="showPathResult" id="bus-path-result"></div>
   </div>
 </template>
 
@@ -45,7 +45,8 @@ window["initMapContainer"] = () => {
     case "TRANSIT_SOLUTION":
       $scope.transit = new BMap.TransitRoute(IMap, {
         renderOptions: {
-          map: IMap
+          map: IMap,
+          panel: "bus-path-result"
         },
         policy: $scope.options.policy,
         onSearchComplete: $scope.onTranitRouteSearchComplete
@@ -54,8 +55,12 @@ window["initMapContainer"] = () => {
   }
   $scope.installPlugin();
   $scope.$emit("onLoadComplete", $scope);
-  $($scope.$refs.mapContainer).height($('body').height() + parseInt($scope.height || 0));
-  $($scope.$refs.mapContainer).width($('body').width() + parseInt($scope.width || 0));
+  $($scope.$refs.mapContainer).height(
+    $("body").height() + parseInt($scope.height || 0)
+  );
+  $($scope.$refs.mapContainer).width(
+    $("body").width() + parseInt($scope.width || 0)
+  );
 };
 
 import { mapGetters } from "vuex";
@@ -84,7 +89,7 @@ export default {
       default() {
         return {
           type: "BUS_LINE",
-          showType: "MAP_RESULT",
+          // showType: "MAP_RESULT",
           policy: 0
         };
       }
@@ -102,6 +107,22 @@ export default {
           }
         ];
       }
+    },
+    start: {
+      type: String,
+      default: ""
+    },
+    end: {
+      type: String,
+      default: ""
+    },
+    showPathResult: {
+      type: Boolean,
+      default: false
+    },
+    showMap: {
+      type: Boolean,
+      default: true
     }
   },
   computed: {
@@ -111,12 +132,18 @@ export default {
     height(height) {
       // this.$refs["mapContainer"] &&
       //   (this.$refs["mapContainer"].style.height = height);
-      $('#map-container').height($('body').height() + parseInt(height || 0));
+      $("#map-container").height($("body").height() + parseInt(height || 0));
     },
     width(width) {
       // this.$refs["mapContainer"] &&
       //   (this.$refs["mapContainer"].style.width = width);
-      $('#map-container').width($('body').width() + parseInt(width || 0));
+      $("#map-container").width($("body").width() + parseInt(width || 0));
+    },
+    start(val) {
+      this.transit.search(val, this.end);
+    },
+    end(val) {
+      this.transit.search(this.start, val);
     }
   },
   methods: {
@@ -138,7 +165,7 @@ export default {
     },
     onTranitRouteSearchComplete(result) {
       if (result) {
-        // alert(result)
+        this.$emit("onTranitRouteSearchComplete", result);
       }
     },
     getCurrentPosition() {

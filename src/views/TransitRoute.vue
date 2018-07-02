@@ -14,7 +14,16 @@
         <i class="fa fa-exchange reverse-position" aria-hidden="true"></i>
       </div>
     </cell>
-    <map-container :options="options" :pluginOptions="commonPluginOptions" :height="-250" @onLoadComplete="loadComplete"></map-container>
+    <map-container
+    v-show="showMap"
+      :start="startPosition" 
+      :end="endPosition" 
+      :options="options" 
+      :pluginOptions="commonPluginOptions"
+      :height="-15"
+      @onLoadComplete="loadComplete"
+      @onTranitRouteSearchComplete="TranitRouteSearchComplete">
+    </map-container>
   </div>
 </template>
 
@@ -35,7 +44,8 @@ export default {
         showType: "MAP_RESULT",
         policy: 0
       },
-      commonPluginOptions
+      commonPluginOptions,
+      showMap: true
     };
   },
   components: {
@@ -57,6 +67,9 @@ export default {
       //     }
       //   }
       // }
+    },
+    TranitRouteSearchComplete(event) {
+      debugger
     }
   },
   mounted() {
