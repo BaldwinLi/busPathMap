@@ -3,6 +3,7 @@
 import $ from 'jquery'
 import 'font-awesome/css/font-awesome.min.css'
 import '@/assets/iconfont/iconfont.css'
+import '@/assets/custom.css'
 import Vue from 'vue'
 import FastClick from 'fastclick'
 import VueRouter from 'vue-router'

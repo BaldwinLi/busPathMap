@@ -1,75 +1,147 @@
 <template>
   <div class="trans-main">
     <!-- speech x-webkit-speech -->
+    <divider>请输入起点和终点的关键字进行查询</divider>
     <cell primary="content">
       <div slot="title" class="input-header">
-        <x-input type="text" placeholder="请输入起点" v-model="startPosition">
+        <!-- <x-input type="text" placeholder="请输入起点" v-model="startPosition">
           <i slot="label" class="iconfont icon-pointerbig position-label start"></i>
-        </x-input>
-        <x-input type="text" placeholder="请输入终点" v-model="endPosition">
+        </x-input> -->
+        <search
+        placeholder="请输入起点"
+        v-model="startPosition"
+        @result-click="startResultClick"
+        :results="searchResults"
+        position="inherit"
+        @on-focus="onFocus('start')"
+        ref="startSearch">
+          <i slot="left" class="iconfont icon-pointerbig position-label start"></i>
+        </search>
+        <!-- <x-input type="text" placeholder="请输入终点" v-model="endPosition">
           <i slot="label" class="iconfont icon-pointerbig position-label end"></i>
-        </x-input>
+        </x-input> -->
+        <search
+        placeholder="请输入终点"
+        v-model="endPosition"
+        @result-click="endResultClick"
+        :results="searchResults"
+        position="inherit"
+        @on-focus="onFocus('end')"
+        ref="endSearch">
+          <i slot="left" class="iconfont icon-pointerbig position-label end"></i>
+        </search>
       </div>
       <div slot class="input-body">
         <i class="fa fa-exchange reverse-position" aria-hidden="true"></i>
       </div>
     </cell>
     <map-container
-    v-show="showMap"
-      :start="startPosition" 
-      :end="endPosition" 
+      v-show="showMap"
+      :startText="startPosition" 
+      :endText="endPosition"
+      :start="start"
+      :end="end"
       :options="options" 
       :pluginOptions="commonPluginOptions"
       :height="-15"
       @onLoadComplete="loadComplete"
+      @onPoiChange="onPoiChange"
       @onTranitRouteSearchComplete="TranitRouteSearchComplete">
     </map-container>
   </div>
 </template>
 
 <script>
-import { isObject } from "lodash";
-import { XInput, Cell } from "vux";
+import { isObject, debounce } from "lodash";
+import { Search, Cell, Divider } from "vux";
 import MapContainer from "@/components/map-container";
 import { commonPluginOptions } from "@/components/map-config";
-
+import { setTimeout } from "timers";
+// let $scope;
 export default {
   name: "transit-route",
   data() {
     return {
       startPosition: "",
       endPosition: "",
+      start: {},
+      end: {},
+      searchResults: [],
       options: {
         type: "TRANSIT_SOLUTION",
         showType: "MAP_RESULT",
         policy: 0
       },
       commonPluginOptions,
-      showMap: true
+      showMap: true,
+      isNeedToClear: false,
+      startCache: "",
+      endCache: ""
     };
   },
   components: {
     MapContainer,
-    XInput,
-    Cell
+    Search,
+    Cell,
+    Divider
   },
   methods: {
     onSpeechChange(value) {
       alert(value);
     },
-    loadComplete(event) {
-      // event.busline.getBusList(3);
-      // if (event) {
-      //   for (var i = 0; i < event.getCurrentNumPois(); i++) {
-      //     const poi = event.getPoi(i);
-      //     if (poi.type == BMAP_POI_TYPE_BUSSTOP) {
-      //       busPoi = poi;
-      //     }
-      //   }
-      // }
+    loadComplete(event) {},
+    onPoiChange(result) {
+      if (this.isNeedToClear) {
+        // const startText = this.startPosition;
+        // const endText = this.endPosition;
+        this.cancelSearch(this.$refs.startSearch);
+        this.cancelSearch(this.$refs.endSearch);
+        // setTimeout(() => {
+        //   this.startPosition = startText;
+        //   this.endPosition = endText;
+        // });
+        this.isNeedToClear = false;
+      } else {
+        this.searchResults = result;
+      }
+    },
+    startResultClick(value) {
+      this.start = value;
+      if (value.title !== this.startPosition) {
+        this.startPosition = value.title;
+        this.isNeedToClear = true;
+      }
+      this.cancelSearch(this.$refs.startSearch);
+    },
+    endResultClick(value) {
+      this.end = value;
+      if (value.title !== this.endPosition) {
+        this.endPosition = value.title;
+        this.isNeedToClear = true;
+      }
+      this.cancelSearch(this.$refs.endSearch);
     },
     TranitRouteSearchComplete(event) {
-      debugger
+      // this.searchResults = [];
+    },
+    onFocus(key) {
+      switch (key) {
+        case "start":
+          this.cancelSearch(this.$refs.endSearch);
+          break;
+        case "end":
+          this.cancelSearch(this.$refs.startSearch);
+          break;
+      }
+    },
+    cancelSearch(ref) {
+      // setTimeout(() => {
+      ref.isCancel = true;
+      ref.emitEvent();
+      ref.isFixed = false;
+      ref.$emit("on-cancel");
+      this.searchResults.length > 0 && (this.searchResults = []);
+      // });
     }
   },
   mounted() {
@@ -79,6 +151,7 @@ export default {
     //     // location.search('高新园区');
     //   });
     // });
+    // $scope = this;
   }
 };
 </script>

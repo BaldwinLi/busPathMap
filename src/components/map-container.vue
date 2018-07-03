@@ -7,7 +7,7 @@
 
 <script>
 // import { TRANSIT_POLICY } from './map-config.js'
-import { forEach } from "lodash";
+import { forEach, debounce } from "lodash";
 let $scope;
 window["initMapContainer"] = () => {
   window["IMap"] = new BMap.Map("map-container");
@@ -24,17 +24,18 @@ window["initMapContainer"] = () => {
       });
     });
   });
+  $scope.location = new BMap.LocalSearch('大连', {
+    renderOptions: {
+      map: IMap
+    },
+    onSearchComplete: $scope.onLocalSearchComplete
+  });
   switch ($scope.options.type) {
-    case "LOCAL_SEARCH":
-      $scope.location = new BMap.LocalSearch(IMap, {
-        renderOptions: {
-          map: IMap
-        },
-        onSearchComplete: $scope.onLocalSearchComplete
-      });
-      break;
+    // case "LOCAL_SEARCH":
+
+    //   break;
     case "BUS_LINE":
-      $scope.busline = new BMap.BusLineSearch(IMap, {
+      $scope.busline = new BMap.BusLineSearch('大连', {
         renderOptions: {
           map: IMap,
           panel: "bus-path-result"
@@ -43,14 +44,18 @@ window["initMapContainer"] = () => {
       });
       break;
     case "TRANSIT_SOLUTION":
-      $scope.transit = new BMap.TransitRoute(IMap, {
+      $scope.transit = new BMap.TransitRoute('大连', {
         renderOptions: {
           map: IMap,
           panel: "bus-path-result"
         },
-        policy: $scope.options.policy,
-        onSearchComplete: $scope.onTranitRouteSearchComplete
+        policy: BMAP_TRANSIT_POLICY_RECOMMEND,
+        onSearchComplete: $scope.onTranitRouteSearchComplete,
+        onResultsHtmlSet: $scope.onResultsHtmlSet
       });
+      // const point1 = new BMap.Point(121.639142, 38.928159);
+      // const point2 = new BMap.Point(121.600622, 38.901096);
+      // $scope.transit.search(point1, point2);
       break;
   }
   $scope.installPlugin();
@@ -74,7 +79,8 @@ export default {
       geoc: Object,
       location: Object,
       busPoi: Object,
-      plugins: []
+      plugins: [],
+      poiList: []
     };
   },
   props: {
@@ -108,17 +114,33 @@ export default {
         ];
       }
     },
-    start: {
+    startText: {
       type: String,
       default: ""
     },
-    end: {
+    endText: {
       type: String,
       default: ""
+    },
+    start: {
+      type: Object,
+      default() {
+        return {
+          title: ''
+        }
+      }
+    },
+    end: {
+      type: Object,
+      default() {
+        return {
+          title: ''
+        }
+      }
     },
     showPathResult: {
       type: Boolean,
-      default: false
+      default: true
     },
     showMap: {
       type: Boolean,
@@ -139,22 +161,35 @@ export default {
       //   (this.$refs["mapContainer"].style.width = width);
       $("#map-container").width($("body").width() + parseInt(width || 0));
     },
+    startText(val, old) {
+      // $scope.busline.getBusList(3);
+      // $scope.transit.search(val, $scope.end);
+      $scope.poiList.length = 0;
+      $scope.location.search(val);
+    },
+    endText(val, old) {
+      // $scope.transit.search($scope.start, val);
+      $scope.poiList.length = 0;
+      $scope.location.search(val);
+    },
     start(val) {
-      this.transit.search(val, this.end);
+      $scope.end.point && val.point && $scope.transit.search(val.point, $scope.end.point);
     },
     end(val) {
-      this.transit.search(this.start, val);
+      $scope.start.point && val.point && $scope.transit.search($scope.start.point, val.point);
     }
   },
   methods: {
     onLocalSearchComplete(result) {
       if (result) {
-        for (var i = 0; i < result.getCurrentNumPois(); i++) {
-          const poi = result.getPoi(i);
-          if (poi.type == BMAP_POI_TYPE_BUSSTOP) {
-            busPoi = poi;
-          }
-        }
+        forEach(result.tr, poi => {
+          
+          poi.type === BMAP_POI_TYPE_BUSSTOP && this.poiList.push({
+            title: poi.title,
+            point: new BMap.Point(poi.point.lng,poi.point.lat)
+          })
+        });
+        this.$emit('onPoiChange', this.poiList)
       }
     },
     onBusLineSearchComplete(result) {
@@ -163,9 +198,14 @@ export default {
         this.busline.getBusLine(fstLine);
       }
     },
-    onTranitRouteSearchComplete(result) {
-      if (result) {
-        this.$emit("onTranitRouteSearchComplete", result);
+    onTranitRouteSearchComplete(results) {
+      if (results) {
+        this.$emit("onTranitRouteSearchComplete", results);
+      }
+    },
+    onResultsHtmlSet(html) {
+      if (html) {
+        console.log(html);
       }
     },
     getCurrentPosition() {
