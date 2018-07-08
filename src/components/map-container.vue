@@ -140,10 +140,10 @@ export default {
       $("#map-container").width($("body").width() + parseInt(width || 0));
     },
     start(val) {
-      this.transit.search(val, this.end);
+      val && this.end && this.transit.search(val, this.end);
     },
     end(val) {
-      this.transit.search(this.start, val);
+      val && this.start && this.transit.search(this.start, val);
     }
   },
   methods: {
