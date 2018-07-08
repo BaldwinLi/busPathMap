@@ -11,7 +11,7 @@
           <i slot="label" class="iconfont icon-pointerbig position-label start"></i>
         </x-input> -->
         <search
-        style="position: relative"
+        style="position: relative; z-index: 9;"
         placeholder="请输入起点"
         v-model="startPosition"
         @result-click="startResultClick"
@@ -221,14 +221,8 @@ export default {
     ...mapMutations(["updateTitle"])
   },
   mounted() {
-    // mapLoader({type: 'BUS_LINE'}, (res) => {
-    //   setTimeout(() => {
-    //     busline.getBusList(3);
-    //     // location.search('高新园区');
-    //   });
-    // });
-    // $scope = this;
     this.updateTitle("换乘方案查询");
+    $('.input-header').width($(window).width() * 0.7);
   }
 };
 </script>
@@ -238,9 +232,9 @@ export default {
 .trans-main {
   font-size: 1.5rem;
 }
-.input-header {
+/* .input-header {
   width: 22rem;
-}
+} */
 .input-body {
   text-align: center;
 }

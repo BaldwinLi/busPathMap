@@ -290,24 +290,43 @@ export default {
         {
           enableHighAccuracy: true,
           timeout: 4000,
-          maximumAge: 3000,
-          SDKLocation: true
+          maximumAge: 3000
+          // SDKLocation: true
         }
       );
     },
     getCurrentPositionComplete(result) {
-      const center = result.point || result.center;
+      let center = result.point || result.center;
+      let centerPoint;
       if (result.level > 1) {
         window["IMap"].centerAndZoom(
           new BMap.Point(center.lng, center.lat),
           this.zoom
         );
       } else {
+        center = result.point = result.center = new BMap.Point(
+          121.618726,
+          38.919333
+        );
+        result.name = "大连";
         window["IMap"].centerAndZoom(
-          new BMap.Point(121.618726, 38.919333),
+          new BMap.Point(center.lng, center.lat),
           this.zoom
         );
       }
+      var marker = new BMap.Marker(center, {
+        icon: new BMap.Icon(
+          "http://api.map.baidu.com/img/markers.png",
+          new BMap.Size(23, 25),
+          {
+            offset: new BMap.Size(10, 25),
+            imageOffset: new BMap.Size(0, 0)
+          }
+        )
+      }); // 创建标注
+      window["IMap"].addOverlay(new BMap.Marker(center));
+      window["IMap"].panTo(center);
+      window["IMap"].enableScrollWheelZoom();
       this.$emit("onGeolocationComplete", result);
     },
     installPlugin() {
