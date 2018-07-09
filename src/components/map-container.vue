@@ -125,6 +125,8 @@ export default {
         ];
       }
     },
+    busNum: String,
+    fstLine: Object,
     startText: {
       type: String,
       default: ""
@@ -171,6 +173,13 @@ export default {
       // this.$refs["mapContainer"] &&
       //   (this.$refs["mapContainer"].style.width = width);
       $("#map-container").width($("body").width() + parseInt(width || 0));
+    },
+    busNum(val) {
+      val && $scope.busline.getBusList(val);
+    },
+    fstLine(val) {
+      // const fstLine = result.getBusListItem(val); //获取第一个公交列表显示到map上
+      this.busline.getBusLine(val);
     },
     startText(val, old) {
       // $scope.busline.getBusList(3);
@@ -261,8 +270,7 @@ export default {
     },
     onBusLineSearchComplete(result) {
       if (result) {
-        const fstLine = result.getBusListItem(0); //获取第一个公交列表显示到map上
-        this.busline.getBusLine(fstLine);
+        this.$emit("onBusLineSearchComplete", result);
       }
     },
     onTranitRouteSearchComplete(results) {
@@ -352,7 +360,9 @@ export default {
     },
     ...mapMutations(["updateLoadingStatus"])
   },
-  beforeCreate() {
+  beforeCreate() {},
+  updated() {},
+  mounted() {
     $scope = this;
     if (!window["BMap"]) {
       const bmapKey = this.isLocal
@@ -368,10 +378,6 @@ export default {
     } else {
       initMapContainer();
     }
-  },
-  updated() {},
-  mounted() {
-    $scope = this;
   }
 };
 </script>
