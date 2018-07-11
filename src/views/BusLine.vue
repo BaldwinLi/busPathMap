@@ -7,7 +7,7 @@
           auto-scroll-to-top
           top="0"
           @result-click="setBusLine"
-          :results="searchResults"
+          :results="forwardLineList"
           ref="search">
       <!-- cancel-text="搜索" -->
       <!-- <i slot="left" v-if="!isShowList" @click="hideList" class="fa fa-angle-left" style="font-size: 2.5rem; margin-right: 1rem;" aria-hidden="true"></i> -->
@@ -15,10 +15,10 @@
     <map-container
       ref="mapContainer"
       :busNum="busNum"
-      :fstLine="fstLine"
+      :fstLine="fstLine.lineItem"
       :options="options" 
       :pluginOptions="commonPluginOptions"
-      :height="30"
+      :height="130"
       :showMap="showMap"
       :showPathResult="showPathResult"
       @onLoadComplete="loadComplete"
@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import { map } from "lodash";
+import { forEach } from "lodash";
 import { Cell, Search } from "vux";
 import MapContainer from "@/components/map-container";
 import { commonPluginOptions } from "@/components/map-config";
@@ -51,23 +51,27 @@ export default {
       showMap: true,
       showPathResult: false,
       commonPluginOptions,
-      searchResults: [],
+      forwardLineList: [],
+      reverseLineList: [],
       fstLine: {}
     };
   },
   methods: {
     onBusLineSearchComplete(event) {
-      this.searchResults = map(event["LA"], (line, index) => {
-        return {
+      forEach(event["LA"], (line, index) => {
+        const lineObj = {
           title: line.name,
-          lineItem: event.getBusListItem(index)
+          lineItem: event.getBusListItem(index),
+          index
         };
+        index%2 ? this.reverseLineList.push(lineObj) : this.forwardLineList.push(lineObj);
       });
     },
     loadComplete(event) {},
     onGeolocationComplete(event) {},
     setBusLine(val) {
-      this.fstLine = val.lineItem;
+      this.fstLine = val;
+      document.activeElement.blur();
     }
   }
 };
