@@ -1,5 +1,13 @@
 .DS_Store
-node_modules/
+/node_modules/*
+!/node_modules/vux
+/node_modules/vux/*
+!/node_modules/vux/src
+/node_modules/vux/src/*
+!/node_modules/vux/src/styles
+/node_modules/vux/src/styles/*
+!/node_modules/vux/src/styles/weui
+
 !node_modules\vux\src\styles\weui\widget\weui_searchbar\weui_searchbar.less
 dist/
 package-lock.json
