@@ -51,7 +51,9 @@ window["initMapContainer"] = () => {
           map: IMap,
           panel: "bus-path-result"
         },
-        onGetBusListComplete: $scope.onBusLineSearchComplete
+        onGetBusListComplete: $scope.onBusLineSearchComplete,
+        onGetBusLineComplete: $scope.onGetBusLineComplete,
+        onMarkersSet: $scope.onMarkersSet
       });
       break;
     case "TRANSIT_SOLUTION":
@@ -91,7 +93,8 @@ export default {
       location: Object,
       busPoi: Object,
       plugins: [],
-      poiList: []
+      poiList: [],
+      directSetBusLine: false
     };
   },
   props: {
@@ -175,7 +178,13 @@ export default {
       $("#map-container").width($("body").width() + parseInt(width || 0));
     },
     busNum(val) {
-      val && $scope.busline.getBusList(val);
+      let numberMatch;
+      if (val && Number(val)) {
+        $scope.busline.getBusList(val);
+      } else if (val && (numberMatch = val.match(/\d+/))) {
+        this.directSetBusLine = true;
+        $scope.busline.getBusList(numberMatch && numberMatch[0]);
+      }
     },
     fstLine(val) {
       // const fstLine = result.getBusListItem(val); //获取第一个公交列表显示到map上
@@ -218,19 +227,26 @@ export default {
       }
     },
     showMap(val) {
-      if (val && $scope.start.point && $scope.end.point) {
+      if (val) {
         this.updateLoadingStatus({ isLoading: true });
         switch ($scope.options.type) {
           case "TRANSIT_SOLUTION":
-            const _start = new BMap.Point(
-              $scope.start.point.lng,
-              $scope.start.point.lat
-            );
-            const _end = new BMap.Point(
-              $scope.end.point.lng,
-              $scope.end.point.lat
-            );
-            $scope.transit.search(_start, _end);
+            if ($scope.start.point && $scope.end.point) {
+              const _start = new BMap.Point(
+                $scope.start.point.lng,
+                $scope.start.point.lat
+              );
+              const _end = new BMap.Point(
+                $scope.end.point.lng,
+                $scope.end.point.lat
+              );
+              $scope.transit.search(_start, _end);
+            }
+            break;
+          case "BUS_LINE":
+            this.directSetBusLine = true;
+            const numberMatch = this.busNum.match(/\d+/);
+            $scope.busline.getBusList(numberMatch && numberMatch[0]);
             break;
         }
       }
@@ -270,7 +286,13 @@ export default {
     },
     onBusLineSearchComplete(result) {
       if (result) {
-        this.$emit("onBusLineSearchComplete", result);
+        if (this.directSetBusLine) {
+          const item = result.LA.find(e => e.name === this.busNum);
+          this.busline.getBusLine(item);
+        } else {
+          this.$emit("onBusLineSearchComplete", result);
+        }
+        this.directSetBusLine = false;
       }
     },
     onTranitRouteSearchComplete(results) {
@@ -356,6 +378,26 @@ export default {
       forEach(this.plugins, (plugin, index) => {
         window["IMap"].removeControl(plugin);
         delete this.plugins[index];
+      });
+    },
+    onGetBusLineComplete(busLine) {
+      this.$emit("onGetBusLineComplete", busLine);
+      this.updateLoadingStatus({ isLoading: false });
+    },
+    onMarkersSet(markers) {
+      forEach(markers, (marker, index) => {
+        marker.V.innerHTML = index + 1;
+        marker.V.style["text-align"] = "center";
+        marker.V.style["color"] = "#4169E1";
+        const markerText = $(marker.V);
+        markerText.height(17);
+        markerText.width(17);
+        const markerPoint = $(marker.Bc).children("div");
+        markerPoint.height(17);
+        markerPoint.width(17);
+        markerPoint.children("img").height(17);
+        markerPoint.children("img").width(17);
+        // $(marker.Bc).children('div').append('<i>' + index + 1 + '</i>')
       });
     },
     ...mapMutations(["updateLoadingStatus"])
