@@ -58,6 +58,8 @@ export default {
   },
   methods: {
     onBusLineSearchComplete(event) {
+       this.reverseLineList.length = 0;
+       this.forwardLineList.length = 0;
       forEach(event["LA"], (line, index) => {
         const lineObj = {
           title: line.name,
