@@ -1,5 +1,6 @@
 .DS_Store
 node_modules/
+!node_modules\vux\src\styles\weui\widget\weui_searchbar\weui_searchbar.less
 dist/
 package-lock.json
 npm-debug.log

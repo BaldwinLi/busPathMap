@@ -5,13 +5,13 @@
       <tab-item :selected="showMap" @on-item-click="onItemClick">换乘路线图</tab-item>
       <tab-item :selected="showPathResult" @on-item-click="onItemClick">换乘方案列表</tab-item>
     </tab>
-    <cell primary="content">
+    <cell primary="content" style="background-color: #fff;">
       <div slot="title" class="input-header">
         <!-- <x-input type="text" placeholder="请输入起点" v-model="startPosition">
           <i slot="label" class="iconfont icon-pointerbig position-label start"></i>
         </x-input> -->
         <search
-        style="position: relative; z-index: 9;"
+        style="z-index: 9;position: relative;"
         placeholder="请输入起点"
         v-model="startPosition"
         @result-click="startResultClick"
@@ -30,7 +30,7 @@
           <i slot="label" class="iconfont icon-pointerbig position-label end"></i>
         </x-input> -->
         <search
-        style="position: relative"
+        style="position: relative;"
         placeholder="请输入终点"
         v-model="endPosition"
         @result-click="endResultClick"
@@ -222,7 +222,7 @@ export default {
   },
   mounted() {
     this.updateTitle("换乘方案查询");
-    $('.input-header').width($(window).width() * 0.7);
+    $(".input-header").width($(window).width() * 0.7);
   }
 };
 </script>
@@ -235,6 +235,9 @@ export default {
 /* .input-header {
   width: 22rem;
 } */
+
+
+/* search. */
 .input-body {
   text-align: center;
 }
