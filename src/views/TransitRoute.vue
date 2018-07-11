@@ -128,6 +128,7 @@ export default {
       }
     },
     startResultClick(value) {
+      document.activeElement.blur();
       this.start = value;
       if (value.title !== this.startPosition) {
         this.startPosition = value.title;
@@ -138,6 +139,7 @@ export default {
       this.postionsHistory = storePositionKeyword(value);
     },
     endResultClick(value) {
+      document.activeElement.blur();
       this.end = value;
       if (value.title !== this.endPosition) {
         this.endPosition = value.title;
