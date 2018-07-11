@@ -5,8 +5,6 @@
 !/node_modules/vux/src
 /node_modules/vux/src/*
 !/node_modules/vux/src/styles
-/node_modules/vux/src/styles/*
-!/node_modules/vux/src/styles/weui
 
 !node_modules\vux\src\styles\weui\widget\weui_searchbar\weui_searchbar.less
 dist/
