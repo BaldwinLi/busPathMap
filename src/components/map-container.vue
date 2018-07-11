@@ -344,17 +344,19 @@ export default {
           this.zoom
         );
       }
+      const icon = new BMap.Icon(
+        "http://api0.map.bdimg.com/images/stop_icon.png",
+        new BMap.Size(23, 25),
+        {
+          offset: new BMap.Size(10, 25),
+          imageOffset: new BMap.Size(0, 0)
+        }
+      );
+      icon.imageSize = new BMap.Size(15, 15);
       var marker = new BMap.Marker(center, {
-        icon: new BMap.Icon(
-          "http://api.map.baidu.com/img/markers.png",
-          new BMap.Size(23, 25),
-          {
-            offset: new BMap.Size(10, 25),
-            imageOffset: new BMap.Size(0, 0)
-          }
-        )
+        icon
       }); // 创建标注
-      window["IMap"].addOverlay(new BMap.Marker(center));
+      window["IMap"].addOverlay(marker);
       window["IMap"].panTo(center);
       window["IMap"].enableScrollWheelZoom();
       this.$emit("onGeolocationComplete", result);
@@ -437,12 +439,12 @@ export default {
 </style>
 
 //启用数据库  
-webSettings.setDatabaseEnabled(true);    
-String dir = this.getApplicationContext().getDir("database", Context.MODE_PRIVATE).getPath(); 
+// webSettings.setDatabaseEnabled(true);    
+// String dir = this.getApplicationContext().getDir("database", Context.MODE_PRIVATE).getPath(); 
 //启用地理定位  
-webSettings.setGeolocationEnabled(true);  
+// webSettings.setGeolocationEnabled(true);  
 //设置定位的数据库路径  
-webSettings.setGeolocationDatabasePath(dir);   
+// webSettings.setGeolocationDatabasePath(dir);   
 //最重要的方法，一定要设置，这就是出不来的主要原因
-webSettings.setDomStorageEnabled(true);
+// webSettings.setDomStorageEnabled(true);
 //配置权限（同样在WebChromeClient中实现）  
