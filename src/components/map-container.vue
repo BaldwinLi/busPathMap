@@ -36,9 +36,9 @@ window["initMapContainer"] = () => {
     });
   });
   $scope.location = new BMap.LocalSearch("大连", {
-    // renderOptions: {
-    //   map: IMap
-    // },
+    renderOptions: $scope.options.type === 'BUS_STATION' && {
+      map: IMap
+    } || {},
     onSearchComplete: $scope.onLocalSearchComplete
   });
   switch ($scope.options.type) {

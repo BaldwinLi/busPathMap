@@ -7,9 +7,9 @@
     <cell primary="content" style="background-color: #fff;">
       <div slot="title" class="input-header">
       <search
-          v-model="busNum"
+          v-model="search"
           position="relative"
-          placeholder="请输入公交线路号"
+          placeholder="请输入地点名称"
           auto-scroll-to-top
           top="0"
           @on-focus="onFocus()"
@@ -26,17 +26,16 @@
     </cell>
     <map-container
       ref="mapContainer"
-      :startText="startPosition"
-      :start="start"
-      :options="options"
+      :busNum="busNum"
+      :fstLine="fstLine.lineItem"
+      :options="options" 
       :pluginOptions="commonPluginOptions"
-      :height="-135"
+      :height="130"
       :showMap="showMap"
       :showPathResult="showPathResult"
       @onLoadComplete="loadComplete"
-      @onPoiChange="onPoiChange"
-      @onGetClickPoi="onGetClickPoi"
-      @onTranitRouteSearchComplete="TranitRouteSearchComplete"
+      @onBusLineSearchComplete="onBusLineSearchComplete"
+      @onGetBusLineComplete="onGetBusLineComplete"
       @onGeolocationComplete="onGeolocationComplete">
     </map-container>
   </div>
@@ -62,7 +61,7 @@ export default {
   data() {
     return {
       options: {
-        type: "BUS_LINE",
+        type: "BUS_STATION",
         showType: "MAP_RESULT",
         policy: 0
       },
