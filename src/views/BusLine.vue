@@ -24,19 +24,18 @@
         <i class="fa fa-exchange reverse-position" aria-hidden="true" @click="reversePosition"></i>
       </div>
     </cell>
-    <map-container
+<map-container
       ref="mapContainer"
-      :startText="startPosition"
-      :start="start"
-      :options="options"
+      :busNum="busNum"
+      :fstLine="fstLine.lineItem"
+      :options="options" 
       :pluginOptions="commonPluginOptions"
-      :height="-135"
+      :height="130"
       :showMap="showMap"
       :showPathResult="showPathResult"
       @onLoadComplete="loadComplete"
-      @onPoiChange="onPoiChange"
-      @onGetClickPoi="onGetClickPoi"
-      @onTranitRouteSearchComplete="TranitRouteSearchComplete"
+      @onBusLineSearchComplete="onBusLineSearchComplete"
+      @onGetBusLineComplete="onGetBusLineComplete"
       @onGeolocationComplete="onGeolocationComplete">
     </map-container>
   </div>
