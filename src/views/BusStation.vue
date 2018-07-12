@@ -1,9 +1,9 @@
 <template>
   <div>
-    <tab>
+    <!-- <tab>
       <tab-item :selected="showMap" @on-item-click="onItemClick">地图</tab-item>
       <tab-item :selected="showPathResult" @on-item-click="onItemClick">公交站点列表</tab-item>
-    </tab>
+    </tab> -->
      <search
           v-model="searchWord"
           position="relative"
@@ -15,17 +15,18 @@
           :results="searchResults"
           @on-submit="setBusPoi(0)"
           ref="search">
+          <a slot="right" class="iconfont icon-global_geo geo-setter" @click="setCurrentGeo"></a>
       <!-- cancel-text="搜索" -->
       <!-- <i slot="left" v-if="!isShowList" @click="hideList" class="fa fa-angle-left" style="font-size: 2.5rem; margin-right: 1rem;" aria-hidden="true"></i> -->
         </search>
     <map-container
       ref="mapContainer"
       :startText="searchWord"
+      :start="start"
       :options="options" 
       :pluginOptions="commonPluginOptions"
       :height="130"
-      :showMap="showMap"
-      :showPathResult="showPathResult"
+      v-show="showMap"
       @onPoiChange="onPoiChange"
       @onGeolocationComplete="onGeolocationComplete">
     </map-container>
@@ -38,10 +39,9 @@ import { Cell, Search, Tab, TabItem } from "vux";
 import { mapMutations } from "vuex";
 import MapContainer from "@/components/map-container";
 import { commonPluginOptions } from "@/components/map-config";
-import { storeBusLineKeyword } from "@/helper/utils";
+import { storeBusStationKeyword } from "@/helper/utils";
 import { setTimeout } from "timers";
-let historyForwardBusline;
-let historyReverseBusline;
+
 export default {
   components: {
     Search,
@@ -59,10 +59,11 @@ export default {
       },
       isNeedToClear: false,
       searchWord: "",
+      start: {},
       showMap: true,
       showPathResult: false,
       commonPluginOptions,
-      searchResults: cloneDeep(historyForwardBusline),
+      searchResults: [],
       fstLine: {}
     };
   },
@@ -72,32 +73,26 @@ export default {
         this.cancelSearch();
         this.isNeedToClear = false;
       } else {
-        this.searchResults = result;
+        this.searchResults = result.map(v => ({
+          ...v,
+          title: v.title + "-" + v.address
+        }));
       }
     },
     onGeolocationComplete(event) {},
     setBusPoi(val) {
-      if (val.lineItem) {
-        this.fstLine = val;
-        storeBusLineKeyword({
-          forward: { title: val.title },
-          reverse: { title: this.reverseLineList[val.index].title }
-        });
-      }
-      this.busNum = val.title;
+      val = val || this.searchResults[0];
+      this.start = val;
+      this.searchWord = val.title;
       document.activeElement.blur();
+      this.cancelSearch();
+      storeBusStationKeyword(val);
       this.cancelSearch();
     },
     onFocus() {
-      !this.busNum &&
+      !this.searchWord &&
         setTimeout(() => {
-          this.searchResults = historyForwardBusline = storeBusLineKeyword().map(
-            v => v.forward
-          );
-          this.forwardLineList = storeBusLineKeyword().map(v => v.forward);
-          this.reverseLineList = historyReverseBusline = storeBusLineKeyword().map(
-            v => v.reverse
-          );
+          this.searchResults = storeBusStationKeyword();
         });
     },
     onItemClick(index) {
@@ -113,6 +108,9 @@ export default {
         this.searchResults.length > 0 && (this.searchResults = []);
       });
     },
+    setCurrentGeo() {
+      this.$refs["mapContainer"].getCurrentPosition();
+    },
     ...mapMutations(["updateTitle"])
   },
   mounted() {
@@ -127,5 +125,12 @@ export default {
 }
 .reverse-position {
   font-size: 3rem;
+}
+.geo-setter {
+  right: 8rem;
+  margin: auto;
+  position: absolute;
+  z-index: 10;
+  cursor: pointer;
 }
 </style>

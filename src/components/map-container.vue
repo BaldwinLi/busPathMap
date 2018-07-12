@@ -42,6 +42,7 @@ window["initMapContainer"] = () => {
         panel: "bus-path-result"
       }) ||
       {},
+    pageCapacity: $scope.options.type === "BUS_STATION" ? 100 : 10,
     onMarkersSet: $scope.onMarkersSet,
     onResultsHtmlSet: $scope.onResultsHtmlSet,
     onSearchComplete: $scope.onLocalSearchComplete
@@ -214,11 +215,25 @@ export default {
       }
     },
     start(val) {
-      if ($scope.end.point && val.point) {
+      if (val.point) {
         this.updateLoadingStatus({ isLoading: true });
         const _start = new BMap.Point(val.point.lng, val.point.lat);
-        const _end = new BMap.Point($scope.end.point.lng, $scope.end.point.lat);
-        $scope.transit.search(_start, _end);
+        const _end =
+          $scope.end.point &&
+          new BMap.Point($scope.end.point.lng, $scope.end.point.lat);
+        switch (this.options.type) {
+          case "TRANSIT_SOLUTION":
+            $scope.transit.search(_start, _end);
+            break;
+          case "BUS_STATION":
+            // var marker = new BMap.Marker(_start); // 创建标注
+            this.location.searchNearby(
+              $scope.start.title.split("-")[0],
+              _start
+            );
+            // window["IMap"].addOverlay(marker);
+            break;
+        }
       }
     },
     end(val) {
@@ -254,6 +269,18 @@ export default {
             const numberMatch = this.busNum.match(/\d+/);
             $scope.busline.getBusList(numberMatch && numberMatch[0]);
             break;
+          case "BUS_STATION":
+            if ($scope.start.point) {
+              const _start = new BMap.Point(
+                $scope.start.point.lng,
+                $scope.start.point.lat
+              );
+              this.location.searchNearby(
+                $scope.start.title.split("-")[0],
+                _start
+              );
+            } else this.updateLoadingStatus({ isLoading: false });
+            break;
         }
       }
     },
@@ -279,16 +306,21 @@ export default {
   methods: {
     onLocalSearchComplete(result) {
       if (result) {
-        forEach(result.tr, poi => {
-          if (
+        this.poiList.length = 0;
+        forEach(result.tr, (poi, i) => {
+          const toFilter =
             this.options.type === "BUS_STATION"
               ? poi.type === BMAP_POI_TYPE_BUSSTOP
-              : true
-          ) {
-            this.poiList.push({
-              title: poi.title,
-              point: new BMap.Point(poi.point.lng, poi.point.lat)
-            });
+              : true;
+          if (toFilter) {
+            this.poiList.push(
+              toFilter
+                ? poi
+                : {
+                    title: poi.title,
+                    point: new BMap.Point(poi.point.lng, poi.point.lat)
+                  }
+            );
           }
         });
         this.$emit("onPoiChange", this.poiList);
@@ -316,12 +348,16 @@ export default {
       switch (this.options.type) {
         case "BUS_LINE":
           forEach(html.children, elem => {
-            if (elem.localName === "dl" && elem.innerText.indexOf(this.busNum) === -1) $(elem).hide();
+            if (
+              elem.localName === "dl" &&
+              elem.innerText.indexOf(this.busNum) === -1
+            )
+              $(elem).hide();
           });
           break;
         case "BUS_STATION":
-          forEach($(html).find('li'), elem => {
-            if (elem.innerText.indexOf('公交车站') === -1) $(elem).hide();
+          forEach($(html).find("li"), elem => {
+            if (elem.innerText.indexOf("公交车站") === -1) $(elem).hide();
           });
           break;
       }
@@ -379,6 +415,11 @@ export default {
       window["IMap"].addOverlay(marker);
       window["IMap"].panTo(center);
       window["IMap"].enableScrollWheelZoom();
+      switch (this.options.type) {
+        case "BUS_STATION":
+          this.start.point = center;
+          this.location.searchNearby(result.name, this.start.point);
+      }
       this.$emit("onGeolocationComplete", result);
     },
     installPlugin() {
@@ -432,6 +473,7 @@ export default {
           });
           break;
       }
+      this.updateLoadingStatus({ isLoading: false });
     },
     ...mapMutations(["updateLoadingStatus"])
   },

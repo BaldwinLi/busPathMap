@@ -261,7 +261,7 @@ export default {
   font-size: 3rem;
 }
 .geo-setter {
-  right: 5rem;
+  right: 0;
   margin: 0.5rem;
   position: absolute;
   z-index: 10;

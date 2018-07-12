@@ -27,3 +27,15 @@ export const storeBusLineKeyword = (keyword) => {
   }
   return buslines;
 }
+
+export const storeBusStationKeyword = (keyword) => {
+  const busstations = JSON.parse(window.localStorage.getItem('busstation_history') || '[]');
+  if (keyword) {
+    const hasKeyword = busstations.length > 0 && busstations.some(e => e.title === keyword.title);
+    if (!hasKeyword) {
+      busstations.push(keyword);
+      window.localStorage.setItem('busstation_history', JSON.stringify(busstations));
+    }
+  }
+  return busstations;
+}

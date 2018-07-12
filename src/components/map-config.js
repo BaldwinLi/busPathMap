@@ -26,6 +26,4 @@ export const commonPluginOptions = [{
       anchor: "BOTTOM_RIGHT"
     }
   }
-
-
 ];
