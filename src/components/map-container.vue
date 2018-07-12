@@ -55,7 +55,8 @@ window["initMapContainer"] = () => {
       $scope.busline = new BMap.BusLineSearch("大连", {
         renderOptions: {
           map: IMap,
-          panel: "bus-path-result"
+          panel: "bus-path-result",
+          autoViewport: true
         },
         onGetBusListComplete: $scope.onBusLineSearchComplete,
         onGetBusLineComplete: $scope.onGetBusLineComplete,
