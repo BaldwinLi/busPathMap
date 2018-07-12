@@ -36,9 +36,14 @@ window["initMapContainer"] = () => {
     });
   });
   $scope.location = new BMap.LocalSearch("大连", {
-    renderOptions: $scope.options.type === 'BUS_STATION' && {
-      map: IMap
-    } || {},
+    renderOptions:
+      ($scope.options.type === "BUS_STATION" && {
+        map: IMap,
+        panel: "bus-path-result"
+      }) ||
+      {},
+    onMarkersSet: $scope.onMarkersSet,
+    onResultsHtmlSet: $scope.onResultsHtmlSet,
     onSearchComplete: $scope.onLocalSearchComplete
   });
   switch ($scope.options.type) {
@@ -53,6 +58,7 @@ window["initMapContainer"] = () => {
         },
         onGetBusListComplete: $scope.onBusLineSearchComplete,
         onGetBusLineComplete: $scope.onGetBusLineComplete,
+        onBusListHtmlSet: $scope.onResultsHtmlSet,
         onMarkersSet: $scope.onMarkersSet
       });
       break;
@@ -274,11 +280,16 @@ export default {
     onLocalSearchComplete(result) {
       if (result) {
         forEach(result.tr, poi => {
-          // poi.type === BMAP_POI_TYPE_BUSSTOP &&
-          this.poiList.push({
-            title: poi.title,
-            point: new BMap.Point(poi.point.lng, poi.point.lat)
-          });
+          if (
+            this.options.type === "BUS_STATION"
+              ? poi.type === BMAP_POI_TYPE_BUSSTOP
+              : true
+          ) {
+            this.poiList.push({
+              title: poi.title,
+              point: new BMap.Point(poi.point.lng, poi.point.lat)
+            });
+          }
         });
         this.$emit("onPoiChange", this.poiList);
         this.updateLoadingStatus({ isLoading: false });
@@ -302,8 +313,17 @@ export default {
       }
     },
     onResultsHtmlSet(html) {
-      if (html) {
-        console.log(html);
+      switch (this.options.type) {
+        case "BUS_LINE":
+          forEach(html.children, elem => {
+            if (elem.localName === "dl" && elem.innerText.indexOf(this.busNum) === -1) $(elem).hide();
+          });
+          break;
+        case "BUS_STATION":
+          forEach($(html).find('li'), elem => {
+            if (elem.innerText.indexOf('公交车站') === -1) $(elem).hide();
+          });
+          break;
       }
     },
     getCurrentPosition() {
@@ -387,20 +407,31 @@ export default {
       this.updateLoadingStatus({ isLoading: false });
     },
     onMarkersSet(markers) {
-      forEach(markers, (marker, index) => {
-        marker.V.innerHTML = index + 1;
-        marker.V.style["text-align"] = "center";
-        marker.V.style["color"] = "#4169E1";
-        const markerText = $(marker.V);
-        markerText.height(17);
-        markerText.width(17);
-        const markerPoint = $(marker.Bc).children("div");
-        markerPoint.height(17);
-        markerPoint.width(17);
-        markerPoint.children("img").height(17);
-        markerPoint.children("img").width(17);
-        // $(marker.Bc).children('div').append('<i>' + index + 1 + '</i>')
-      });
+      switch (this.options.type) {
+        case "BUS_STATION":
+          forEach(markers, marker => {
+            if (marker.type !== BMAP_POI_TYPE_BUSSTOP) {
+              marker.marker.hide();
+            }
+          });
+          break;
+        case "BUS_LINE":
+          forEach(markers, (marker, index) => {
+            marker.V.innerHTML = index + 1;
+            marker.V.style["text-align"] = "center";
+            marker.V.style["color"] = "#4169E1";
+            const markerText = $(marker.V);
+            markerText.height(17);
+            markerText.width(17);
+            const markerPoint = $(marker.Bc).children("div");
+            markerPoint.height(17);
+            markerPoint.width(17);
+            markerPoint.children("img").height(17);
+            markerPoint.children("img").width(17);
+            // $(marker.Bc).children('div').append('<i>' + index + 1 + '</i>')
+          });
+          break;
+      }
     },
     ...mapMutations(["updateLoadingStatus"])
   },

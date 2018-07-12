@@ -12,6 +12,7 @@
           placeholder="请输入公交线路号"
           auto-scroll-to-top
           top="0"
+          @on-submit="setBusLine(0)"
           @on-focus="onFocus()"
           @result-click="setBusLine"
           :results="searchResults"
@@ -44,6 +45,7 @@
 <script>
 import { forEach, cloneDeep } from "lodash";
 import { Cell, Search, Tab, TabItem } from "vux";
+import { mapMutations } from "vuex";
 import MapContainer from "@/components/map-container";
 import { commonPluginOptions } from "@/components/map-config";
 import { storeBusLineKeyword } from "@/helper/utils";
@@ -100,6 +102,7 @@ export default {
       this.busNum = busline.name;
     },
     setBusLine(val) {
+      val = val || this.searchResults[0];
       if (val.lineItem) {
         this.fstLine = val;
         storeBusLineKeyword({
@@ -109,7 +112,7 @@ export default {
       }
       this.busNum = val.title;
       document.activeElement.blur();
-      this.cancelSearch(this.$refs.search);
+      this.cancelSearch();
     },
     reversePosition() {
       if (this.fstLine.lineItem) {
@@ -153,15 +156,19 @@ export default {
       this.showMap = index === 0;
       this.showPathResult = index === 1;
     },
-    cancelSearch(ref) {
+    cancelSearch() {
       setTimeout(() => {
-        ref.isCancel = true;
-        ref.emitEvent();
-        ref.isFixed = false;
+        this.$refs.search.isCancel = true;
+        this.$refs.search.emitEvent();
+        this.$refs.search.isFixed = false;
         // ref.$emit("on-cancel");
         this.searchResults.length > 0 && (this.searchResults = []);
       });
-    }
+    },
+    ...mapMutations(["updateTitle"])
+  },
+  mounted() {
+    this.updateTitle("公交线路查询");
   }
 };
 </script>

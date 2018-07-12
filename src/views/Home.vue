@@ -7,6 +7,9 @@
       <router-link to="/bus_line">
         <x-button plain :gradients="['#A644FF', '#FC5BC4']" type="primary" class="x-button-style">公交线路</x-button>
       </router-link>
+      <router-link to="/bus_station">
+        <x-button plain :gradients="['#EEC900', '#EE799F']" type="primary" class="x-button-style">公交站点</x-button>
+      </router-link>
     </box>
   </div>
 </template>
@@ -27,7 +30,7 @@ export default {
 
 <style scoped>
 .home-content {
-  display: inline;
+  /* display: inline; */
   text-align: center;
   margin-top: 35%;
   height: inherit;

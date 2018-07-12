@@ -19,6 +19,7 @@
         position="relative"
         @on-focus="onFocus('start')"
         cancel-text=" "
+        @on-submit="startResultClick(0)"
         @on-cancel="onCancel"
         ref="startSearch">
           <i slot="left" class="iconfont icon-pointerbig position-label start"></i>
@@ -38,6 +39,7 @@
         position="relative"
         @on-focus="onFocus('end')"
         cancel-text=" "
+        @on-submit="endResultClick(0)"
         @on-cancel="onCancel"
         ref="endSearch">
           <i slot="left" class="iconfont icon-pointerbig position-label end"></i>
@@ -124,10 +126,11 @@ export default {
         // });
         this.isNeedToClear = false;
       } else {
-        this.searchResults = result;
+        this.searchResults = result.concat(this.postionsHistory);
       }
     },
     startResultClick(value) {
+      value = value || this.searchResults[0];
       document.activeElement.blur();
       this.start = value;
       if (value.title !== this.startPosition) {
@@ -139,6 +142,7 @@ export default {
       this.postionsHistory = storePositionKeyword(value);
     },
     endResultClick(value) {
+      value = value || this.searchResults[0];
       document.activeElement.blur();
       this.end = value;
       if (value.title !== this.endPosition) {
