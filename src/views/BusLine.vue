@@ -4,9 +4,10 @@
       <tab-item :selected="showMap" @on-item-click="onItemClick">公交路线图</tab-item>
       <tab-item :selected="showPathResult" @on-item-click="onItemClick">公交站点列表</tab-item>
     </tab>
-    <cell primary="content" style="background-color: #fff;">
+    <cell primary="content" class="search-field" style="background-color: #fff;">
       <div slot="title" class="input-header">
       <search
+          style="position: relative;"
           v-model="busNum"
           position="relative"
           placeholder="请输入公交线路号"
@@ -173,11 +174,19 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .input-body {
   text-align: center;
 }
 .reverse-position {
   font-size: 3rem;
+}
+
+.search-field {
+  background-color: rgb(255, 255, 255);
+  position: fixed;
+  z-index: 7;
+  left: 7%;
+  margin: 1rem auto;
 }
 </style>

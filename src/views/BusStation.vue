@@ -4,11 +4,13 @@
       <tab-item :selected="showMap" @on-item-click="onItemClick">地图</tab-item>
       <tab-item :selected="showPathResult" @on-item-click="onItemClick">公交站点列表</tab-item>
     </tab> -->
+
      <search
+          style="position: fixed;width: 90%;left:5%"
+          class="search-field"
           v-model="searchWord"
-          position="relative"
+          position="fixed"
           placeholder="请输入公交站点名称"
-          auto-scroll-to-top
           top="0"
           @on-focus="onFocus()"
           @result-click="setBusPoi"
@@ -132,5 +134,12 @@ export default {
   position: absolute;
   z-index: 10;
   cursor: pointer;
+}
+
+.search-field {
+  background-color: rgb(255, 255, 255);
+  position: fixed;
+  z-index: 7;
+  margin: 1rem auto;
 }
 </style>
