@@ -1,9 +1,9 @@
 <template>
   <div>
-    <!-- <tab>
+    <tab>
       <tab-item :selected="showMap" @on-item-click="onItemClick">地图</tab-item>
-      <tab-item :selected="showPathResult" @on-item-click="onItemClick">公交站点列表</tab-item>
-    </tab> -->
+      <tab-item :selected="showPathResult" @on-item-click="onItemClick">线路详情</tab-item>
+    </tab>
 
      <search
           style="position: fixed;width: 90%;left:5%"
@@ -12,6 +12,7 @@
           position="fixed"
           placeholder="请输入公交站点名称"
           top="0"
+          v-show="showMap"
           @on-focus="onFocus()"
           @on-cancel="isCanceled = true"
           @result-click="setBusPoi"
@@ -27,17 +28,25 @@
       :startText="searchWord"
       :start="start"
       :options="options" 
+      :height="-43"
       :pluginOptions="commonPluginOptions"
-      v-show="showMap"
+      :showMap="showMap"
+      :showPathResult="showPathResult"
       @onPoiChange="onPoiChange"
-      @onGeolocationComplete="onGeolocationComplete">
+      @onGeolocationComplete="onGeolocationComplete"
+      @onBusLineSearchComplete="onBusLineSearchComplete">
     </map-container>
+    <flexbox orient="vertical" :gutter="0" style="position: absolute; top: 50px;">
+      <flexbox-item v-for="(item, index) in busList" :key="index">
+        <cell primary="title" class="search-field" style="background-color: #fff;" :title="item" is-link @click.native="selectBusline(item)"></cell>
+      </flexbox-item>
+    </flexbox>
   </div>
 </template>
 
 <script>
 import { forEach, cloneDeep } from "lodash";
-import { Cell, Search, Tab, TabItem } from "vux";
+import { Cell, Search, Tab, TabItem, Flexbox, FlexboxItem } from "vux";
 import { mapMutations } from "vuex";
 import MapContainer from "@/components/map-container";
 import { commonPluginOptions } from "@/components/map-config";
@@ -50,7 +59,9 @@ export default {
     Cell,
     MapContainer,
     Tab,
-    TabItem
+    TabItem,
+    Flexbox,
+    FlexboxItem
   },
   data() {
     return {
@@ -67,6 +78,7 @@ export default {
       commonPluginOptions,
       searchResults: [],
       fstLine: {},
+      busList: [],
       isCanceled: true
     };
   },
@@ -76,10 +88,12 @@ export default {
         this.cancelSearch();
         this.isNeedToClear = false;
       } else {
-        this.searchResults = result.map(v => ({
-          ...v,
-          title: v.title + "-" + v.address
-        }));
+        this.searchResults = result.map(v => {
+          return {
+            ...v,
+            title: v.title + "-" + v.address
+          };
+        });
       }
     },
     onGeolocationComplete(event) {
@@ -90,6 +104,8 @@ export default {
       val = val || this.searchResults[0];
       this.start = val;
       this.searchWord = val.title;
+      const _busList = val.address.split("; ");
+      this.busList = this.busList.concat(_busList);
       document.activeElement.blur();
       this.cancelSearch();
       storeBusStationKeyword(val);
@@ -118,6 +134,13 @@ export default {
     setCurrentGeo() {
       this.$refs["mapContainer"].getCurrentPosition();
     },
+    selectBusline(item) {
+      this.$refs.mapContainer.busline.getBusList(parseInt(item.replace(/\D/g, '')));
+      this.busList = [];
+    },
+    onBusLineSearchComplete(result) {
+      this.$refs.mapContainer.busline.getBusLine(result.getBusListItem(0));
+    },
     ...mapMutations(["updateTitle"])
   },
   mounted() {
@@ -143,8 +166,8 @@ export default {
 
 .search-field {
   background-color: rgb(255, 255, 255);
-  position: fixed;
+  /* position: fixed; */
   z-index: 7;
-  margin: 1rem auto;
+  /* margin: 1rem auto; */
 }
 </style>

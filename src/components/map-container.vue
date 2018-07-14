@@ -39,7 +39,7 @@ window["initMapContainer"] = () => {
     renderOptions:
       ($scope.options.type === "BUS_STATION" && {
         map: IMap,
-        panel: "bus-path-result"
+        // panel: "bus-path-result"
       }) ||
       {},
     pageCapacity: $scope.options.type === "BUS_STATION" ? 100 : 10,
@@ -47,38 +47,38 @@ window["initMapContainer"] = () => {
     onResultsHtmlSet: $scope.onResultsHtmlSet,
     onSearchComplete: $scope.onLocalSearchComplete
   });
-  switch ($scope.options.type) {
-    // case "LOCAL_SEARCH":
+  // switch ($scope.options.type) {
+  // case "LOCAL_SEARCH":
 
-    //   break;
-    case "BUS_LINE":
-      $scope.busline = new BMap.BusLineSearch("大连", {
-        renderOptions: {
-          map: IMap,
-          panel: "bus-path-result",
-          autoViewport: true
-        },
-        onGetBusListComplete: $scope.onBusLineSearchComplete,
-        onGetBusLineComplete: $scope.onGetBusLineComplete,
-        onBusListHtmlSet: $scope.onResultsHtmlSet,
-        onMarkersSet: $scope.onMarkersSet
-      });
-      break;
-    case "TRANSIT_SOLUTION":
-      $scope.transit = new BMap.TransitRoute("大连", {
-        renderOptions: {
-          map: IMap,
-          panel: "bus-path-result"
-        },
-        policy: BMAP_TRANSIT_POLICY_RECOMMEND,
-        onSearchComplete: $scope.onTranitRouteSearchComplete,
-        onResultsHtmlSet: $scope.onResultsHtmlSet
-      });
-      // const point1 = new BMap.Point(121.639142, 38.928159);
-      // const point2 = new BMap.Point(121.600622, 38.901096);
-      // $scope.transit.search(point1, point2);
-      break;
-  }
+  //   break;
+  // case "BUS_LINE":
+  $scope.busline = new BMap.BusLineSearch("大连", {
+    renderOptions: {
+      map: IMap,
+      panel: "bus-path-result",
+      autoViewport: true
+    },
+    onGetBusListComplete: $scope.onBusLineSearchComplete,
+    onGetBusLineComplete: $scope.onGetBusLineComplete,
+    onBusListHtmlSet: $scope.onResultsHtmlSet,
+    onMarkersSet: $scope.onMarkersSet
+  });
+  // break;
+  // case "TRANSIT_SOLUTION":
+  $scope.transit = new BMap.TransitRoute("大连", {
+    renderOptions: {
+      map: IMap,
+      panel: "bus-path-result"
+    },
+    policy: BMAP_TRANSIT_POLICY_RECOMMEND,
+    onSearchComplete: $scope.onTranitRouteSearchComplete,
+    onResultsHtmlSet: $scope.onResultsHtmlSet
+  });
+  // const point1 = new BMap.Point(121.639142, 38.928159);
+  // const point2 = new BMap.Point(121.600622, 38.901096);
+  // $scope.transit.search(point1, point2);
+  // break;
+  // }
   $scope.installPlugin();
   $scope.$emit("onLoadComplete", $scope);
   $($scope.$refs.mapContainer).height(
@@ -454,24 +454,25 @@ export default {
         case "BUS_STATION":
           forEach(markers, marker => {
             if (marker.type !== BMAP_POI_TYPE_BUSSTOP) {
-              marker.marker.hide();
+              marker.marker && marker.marker.hide();
             }
           });
-          break;
         case "BUS_LINE":
           forEach(markers, (marker, index) => {
-            marker.V.innerHTML = index + 1;
-            marker.V.style["text-align"] = "center";
-            marker.V.style["color"] = "#4169E1";
-            const markerText = $(marker.V);
-            markerText.height(17);
-            markerText.width(17);
-            const markerPoint = $(marker.Bc).children("div");
-            markerPoint.height(17);
-            markerPoint.width(17);
-            markerPoint.children("img").height(17);
-            markerPoint.children("img").width(17);
-            // $(marker.Bc).children('div').append('<i>' + index + 1 + '</i>')
+            if (marker.V && marker.Bc) {
+              marker.V.innerHTML = index + 1;
+              marker.V.style["text-align"] = "center";
+              marker.V.style["color"] = "#4169E1";
+              const markerText = $(marker.V);
+              markerText.height(17);
+              markerText.width(17);
+              const markerPoint = $(marker.Bc).children("div");
+              markerPoint.height(17);
+              markerPoint.width(17);
+              markerPoint.children("img").height(17);
+              markerPoint.children("img").width(17);
+              // $(marker.Bc).children('div').append('<i>' + index + 1 + '</i>')
+            }
           });
           break;
       }
@@ -497,8 +498,13 @@ export default {
     } else {
       initMapContainer();
     }
-    $("#map-container").height($(document).height() + parseInt(this.height || 0));
+    $("#map-container").height(
+      $(document).height() + parseInt(this.height || 0)
+    );
     $("#map-container").width($(document).width() + parseInt(this.width || 0));
+  },
+  destroyed() {
+    delete window["BMap"];
   }
 };
 </script>
