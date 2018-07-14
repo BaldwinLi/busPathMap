@@ -13,11 +13,12 @@
           placeholder="请输入公交站点名称"
           top="0"
           @on-focus="onFocus()"
+          @on-cancel="isCanceled = true"
           @result-click="setBusPoi"
           :results="searchResults"
           @on-submit="setBusPoi(0)"
           ref="search">
-          <a slot="right" class="iconfont icon-global_geo geo-setter" @click="setCurrentGeo"></a>
+          <a slot="right" v-show="isCanceled" class="iconfont icon-global_geo geo-setter" @click="setCurrentGeo"></a>
       <!-- cancel-text="搜索" -->
       <!-- <i slot="left" v-if="!isShowList" @click="hideList" class="fa fa-angle-left" style="font-size: 2.5rem; margin-right: 1rem;" aria-hidden="true"></i> -->
         </search>
@@ -27,7 +28,6 @@
       :start="start"
       :options="options" 
       :pluginOptions="commonPluginOptions"
-      :height="130"
       v-show="showMap"
       @onPoiChange="onPoiChange"
       @onGeolocationComplete="onGeolocationComplete">
@@ -66,7 +66,8 @@ export default {
       showPathResult: false,
       commonPluginOptions,
       searchResults: [],
-      fstLine: {}
+      fstLine: {},
+      isCanceled: true
     };
   },
   methods: {
@@ -81,7 +82,10 @@ export default {
         }));
       }
     },
-    onGeolocationComplete(event) {},
+    onGeolocationComplete(event) {
+      this.searchWord = event.name;
+      this.isCanceled = false;
+    },
     setBusPoi(val) {
       val = val || this.searchResults[0];
       this.start = val;
@@ -92,6 +96,7 @@ export default {
       this.cancelSearch();
     },
     onFocus() {
+      this.isCanceled = false;
       !this.searchWord &&
         setTimeout(() => {
           this.searchResults = storeBusStationKeyword();
@@ -129,7 +134,7 @@ export default {
   font-size: 3rem;
 }
 .geo-setter {
-  right: 8rem;
+  right: 1rem;
   margin: auto;
   position: absolute;
   z-index: 10;

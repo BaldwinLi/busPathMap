@@ -16,7 +16,7 @@ export const commonPluginOptions = [{
   }, {
     plugin: "Navigation",
     option: {
-      anchor: "TOP_LEFT",
+      anchor: "BOTTOM_LEFT",
       type: 'NAVIGATION_CONTROL_LARGE',
       enableGeolocation: true
     }

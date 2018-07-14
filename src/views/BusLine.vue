@@ -4,7 +4,7 @@
       <tab-item :selected="showMap" @on-item-click="onItemClick">公交路线图</tab-item>
       <tab-item :selected="showPathResult" @on-item-click="onItemClick">公交站点列表</tab-item>
     </tab>
-    <cell primary="content" class="search-field" style="background-color: #fff;">
+    <cell primary="content" class="search-field" v-show="showMap" style="background-color: #fff;">
       <div slot="title" class="input-header">
       <search
           style="position: relative;"
@@ -26,13 +26,13 @@
         <i class="fa fa-exchange reverse-position" aria-hidden="true" @click="reversePosition"></i>
       </div>
     </cell>
-<map-container
+    <map-container
       ref="mapContainer"
       :busNum="busNum"
       :fstLine="fstLine.lineItem"
       :options="options" 
       :pluginOptions="commonPluginOptions"
-      :height="130"
+      :height="-43"
       :showMap="showMap"
       :showPathResult="showPathResult"
       @onLoadComplete="loadComplete"

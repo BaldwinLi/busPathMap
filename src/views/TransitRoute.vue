@@ -5,7 +5,7 @@
       <tab-item :selected="showMap" @on-item-click="onItemClick">换乘路线图</tab-item>
       <tab-item :selected="showPathResult" @on-item-click="onItemClick">换乘方案列表</tab-item>
     </tab>
-    <cell primary="content" class="search-field">
+    <cell primary="content" class="search-field" v-show="showMap">
       <div slot="title" class="input-header">
         <!-- <x-input type="text" placeholder="请输入起点" v-model="startPosition">
           <i slot="label" class="iconfont icon-pointerbig position-label start"></i>
@@ -57,7 +57,7 @@
       :end="end"
       :options="options" 
       :pluginOptions="commonPluginOptions"
-      :height="135"
+      :height="-43"
       :showMap="showMap"
       :showPathResult="showPathResult"
       @onLoadComplete="loadComplete"

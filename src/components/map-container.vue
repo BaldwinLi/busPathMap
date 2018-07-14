@@ -178,12 +178,12 @@ export default {
     height(height) {
       // this.$refs["mapContainer"] &&
       //   (this.$refs["mapContainer"].style.height = height);
-      $("#map-container").height($("body").height() + parseInt(height || 0));
+      $("#map-container").height($(document).height() + parseInt(height || 0));
     },
     width(width) {
       // this.$refs["mapContainer"] &&
       //   (this.$refs["mapContainer"].style.width = width);
-      $("#map-container").width($("body").width() + parseInt(width || 0));
+      $("#map-container").width($(document).width() + parseInt(width || 0));
     },
     busNum(val) {
       let numberMatch;
@@ -268,7 +268,8 @@ export default {
           case "BUS_LINE":
             this.directSetBusLine = true;
             const numberMatch = this.busNum.match(/\d+/);
-            $scope.busline.getBusList(numberMatch && numberMatch[0]);
+            if (numberMatch) $scope.busline.getBusList(numberMatch[0]);
+            else this.updateLoadingStatus({ isLoading: false });
             break;
           case "BUS_STATION":
             if ($scope.start.point) {
@@ -496,6 +497,8 @@ export default {
     } else {
       initMapContainer();
     }
+    $("#map-container").height($(document).height() + parseInt(this.height || 0));
+    $("#map-container").width($(document).width() + parseInt(this.width || 0));
   }
 };
 </script>
@@ -508,7 +511,7 @@ export default {
   background-color: rgb(243, 241, 236);
   color: rgb(0, 0, 0);
   text-align: left;
-  height: 450px;
+  /* height: 450px; */
 }
 </style>
 
