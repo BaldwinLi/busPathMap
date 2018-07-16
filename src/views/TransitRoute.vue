@@ -104,7 +104,8 @@ export default {
       isNeedToClear: false,
       startCache: "",
       endCache: "",
-      postionsHistory: storePositionKeyword()
+      postionsHistory: storePositionKeyword(),
+      _query: undefined
     };
   },
   components: {
@@ -226,14 +227,37 @@ export default {
       this.$refs["mapContainer"].getCurrentPosition();
     },
     onGeolocationComplete(result) {
-      this.start = {
-        title: result.name,
-        point: result.center
-      };
-      this.startPosition = result.name;
-      this.cancelSearch(this.$refs.startSearch);
-      this.postionsHistory = storePositionKeyword(this.start);
-      this.isNeedToClear = true;
+      if (!this._query) {
+        this.start = {
+          title: result.name,
+          point: result.center
+        };
+        this.startPosition = result.name;
+        this.cancelSearch(this.$refs.startSearch);
+        this.postionsHistory = storePositionKeyword(this.start);
+        this.isNeedToClear = true;
+      } else {
+        // setTimeout(() => {
+        this.startPosition = this._query.startPosition;
+        this.endPosition = this._query.endPosition;
+        this.start = {
+          title: this._query.startPosition,
+          point: {
+            lng: this._query.startLng,
+            lat: this._query.startLat
+          }
+        };
+        this.endPosition = this._query.endPosition;
+        this.end = {
+          title: this._query.endPosition,
+          point: {
+            lng: this._query.endLng,
+            lat: this._query.endLat
+          }
+        };
+        delete this._query;
+        // });
+      }
     },
     startRecord(event) {
       event.target.style.color = "#4F94CD";
@@ -258,8 +282,8 @@ export default {
         startLng: this.start.point.lng,
         startLat: this.start.point.lat,
         endPosition: this.endPosition,
-        endLng: this.start.point.lng,
-        endLat: this.start.point.lat
+        endLng: this.end.point.lng,
+        endLat: this.end.point.lat
       });
       window.location.href = `${window.location.origin +
         window.location.pathname}#${this.$route.path}?${params}`;
@@ -276,24 +300,7 @@ export default {
   },
   mounted() {
     if (!$.isEmptyObject(this.$route.query)) {
-      const _query = this.$route.query;
-      this.startPosition = _query.startPosition;
-      this.endPosition = _query.endPosition;
-      this.start = {
-        title: _query.startPosition,
-        point: {
-          lng: _query.startLng,
-          lat: _query.startLat
-        }
-      };
-      this.endPosition = _query.endPosition;
-      this.end = {
-        title: _query.endPosition,
-        point: {
-          lng: _query.endLng,
-          lat: _query.endLat
-        }
-      };
+      this._query = this.$route.query;
     }
     this.updateTitle("换乘方案查询");
     $(".input-header").width($(window).width() * 0.7);

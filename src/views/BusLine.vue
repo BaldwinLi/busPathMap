@@ -48,7 +48,7 @@ import { forEach, cloneDeep } from "lodash";
 import { Cell, Search, Tab, TabItem } from "vux";
 import { mapMutations } from "vuex";
 import MapContainer from "@/components/map-container";
-import { loadWeChatSdk } from '@/helper/jssdk-loader'
+import { loadWeChatSdk } from "@/helper/jssdk-loader";
 import { commonPluginOptions } from "@/components/map-config";
 import { storeBusLineKeyword } from "@/helper/utils";
 import { setTimeout } from "timers";
@@ -99,8 +99,12 @@ export default {
       this.searchResults = this.forwardLineList;
     },
     loadComplete(event) {},
-    onGeolocationComplete(event) {},
-    onGetBusLineComplete (busline) {
+    onGeolocationComplete(event) {
+      if (this.$route.query["busNum"]) {
+        this.busNum = this.$route.query["busNum"];
+      }
+    },
+    onGetBusLineComplete(busline) {
       this.busNum = busline.name;
     },
     setBusLine(val) {
@@ -146,15 +150,16 @@ export default {
       this.relocate();
     },
     onFocus() {
-      !this.busNum && setTimeout(() => {
-        this.searchResults = historyForwardBusline = storeBusLineKeyword().map(
-          v => v.forward
-        );
-        this.forwardLineList = storeBusLineKeyword().map(v => v.forward);
-        this.reverseLineList = historyReverseBusline = storeBusLineKeyword().map(
-          v => v.reverse
-        );
-      });
+      !this.busNum &&
+        setTimeout(() => {
+          this.searchResults = historyForwardBusline = storeBusLineKeyword().map(
+            v => v.forward
+          );
+          this.forwardLineList = storeBusLineKeyword().map(v => v.forward);
+          this.reverseLineList = historyReverseBusline = storeBusLineKeyword().map(
+            v => v.reverse
+          );
+        });
     },
     onItemClick(index) {
       this.showMap = index === 0;
@@ -170,19 +175,15 @@ export default {
       });
     },
     relocate() {
-      window.location.href = `${window.location.origin+ window.location.pathname}#${this.$route.path}?busNum=${this.busNum}`;
+      window.location.href = `${window.location.origin +
+        window.location.pathname}#${this.$route.path}?busNum=${this.busNum}`;
     },
     ...mapMutations(["updateTitle"])
   },
   beforeCreate() {
-    loadWeChatSdk([
-      'getLocation'
-    ]);
+    loadWeChatSdk(["getLocation"]);
   },
   mounted() {
-    if (this.$route.query['busNum']) {
-      this.busNum = this.$route.query['busNum'];
-    }
     this.updateTitle("公交线路查询");
   }
 };
