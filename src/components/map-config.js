@@ -20,10 +20,11 @@ export const commonPluginOptions = [{
       type: 'NAVIGATION_CONTROL_LARGE',
       enableGeolocation: true
     }
-  },{
-    plugin: "Geolocation",
-    option: {
-      anchor: "BOTTOM_RIGHT"
-    }
   }
+  // {
+  //   plugin: "Geolocation",
+  //   option: {
+  //     anchor: "BOTTOM_RIGHT"
+  //   }
+  // }
 ];

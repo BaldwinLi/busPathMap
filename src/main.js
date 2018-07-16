@@ -13,7 +13,8 @@ import router from '@/router'
 import {
   AjaxPlugin,
   AlertPlugin,
-  ConfirmPlugin
+  ConfirmPlugin,
+  ToastPlugin
   // AlertModule
 } from 'vux'
 import Vuex from 'vuex'
@@ -21,6 +22,9 @@ import store from './vuex/store';
 import {
   WechatPlugin
 } from 'vux'
+import vueTouch from 'vue-plugin-touch';
+Vue.use(ToastPlugin)
+Vue.use(vueTouch);
 Vue.use(WechatPlugin)
 // import { initKeyList } from './initKeyList';
 

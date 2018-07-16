@@ -23,8 +23,11 @@
         @on-cancel="onCancel"
         ref="startSearch">
           <i slot="left" class="iconfont icon-pointerbig position-label start"></i>
-          <a slot="right" class="iconfont icon-global_geo geo-setter" @click="setCurrentGeo"></a>
+          <a slot="right" class="iconfont icon-global_geo geo-setter" style="right: -3rem;" @click="setCurrentGeo"></a>
+          <a slot="right" class="iconfont icon-yuyin geo-setter start-search" 
+             v-touch:touchstart="startRecord" v-touch:touchend="stopRecord"></a>
         </search>
+        
         
         <!-- @on-cancel="onCancel" -->
         <!-- <x-input type="text" placeholder="请输入终点" v-model="endPosition">
@@ -43,6 +46,8 @@
         @on-cancel="onCancel"
         ref="endSearch">
           <i slot="left" class="iconfont icon-pointerbig position-label end"></i>
+          <a slot="right" class="iconfont icon-yuyin geo-setter end-search"
+             v-touch:touchstart="startRecord" v-touch:touchend="stopRecord"></a>
         </search>
       </div>
       <div slot class="input-body">
@@ -76,6 +81,7 @@ import { mapMutations } from "vuex";
 import MapContainer from "@/components/map-container";
 import { commonPluginOptions } from "@/components/map-config";
 import { setTimeout } from "timers";
+import { loadWeChatSdk, wxStopRecordAndTranslate } from "@/helper/jssdk-loader";
 import { storePositionKeyword } from "@/helper/utils";
 // let $scope;
 export default {
@@ -140,6 +146,7 @@ export default {
       this.cancelSearch(this.$refs.startSearch);
       this.cancelSearch(this.$refs.endSearch);
       this.postionsHistory = storePositionKeyword(value);
+      this.relocate();
     },
     endResultClick(value) {
       value = value || this.searchResults[0];
@@ -152,6 +159,7 @@ export default {
       this.cancelSearch(this.$refs.endSearch);
       this.cancelSearch(this.$refs.startSearch);
       this.postionsHistory = storePositionKeyword(value);
+      this.relocate();
     },
     TranitRouteSearchComplete(event) {
       // this.searchResults = [];
@@ -178,7 +186,9 @@ export default {
           break;
       }
     },
-    onCancel() {},
+    onCancel() {
+      // this.showRecord = false;
+    },
     cancelSearch(ref) {
       setTimeout(() => {
         ref.isCancel = true;
@@ -196,6 +206,7 @@ export default {
       this.start = this.end;
       this.end = _start;
       this.isNeedToClear = true;
+      this.relocate();
     },
     onGetClickPoi(result) {
       if (!this.$refs.startSearch.isCancel) {
@@ -224,9 +235,66 @@ export default {
       this.postionsHistory = storePositionKeyword(this.start);
       this.isNeedToClear = true;
     },
+    startRecord(event) {
+      event.target.style.color = "#4F94CD";
+      this.$vux.toast.show({
+        text: "按住开始说话"
+      });
+      this.$wechat.startRecord();
+    },
+    stopRecord(event) {
+      this.$vux.toast.hide();
+      event.target.style.color = "";
+      wxStopRecordAndTranslate().then(res => {
+        if (event.target.classList.contains("start-search"))
+          this.startPosition = res;
+        else if (event.target.classList.contains("end-search"))
+          this.endPosition = res;
+      });
+    },
+    relocate() {
+      const params = $.param({
+        startPosition: this.startPosition,
+        startLng: this.start.point.lng,
+        startLat: this.start.point.lat,
+        endPosition: this.endPosition,
+        endLng: this.start.point.lng,
+        endLat: this.start.point.lat
+      });
+      window.location.href = `${window.location.origin +
+        window.location.pathname}#${this.$route.path}?${params}`;
+    },
     ...mapMutations(["updateTitle"])
   },
+  beforeCreate() {
+    loadWeChatSdk([
+      "startRecord",
+      "stopRecord",
+      "translateVoice",
+      "getLocation"
+    ]);
+  },
   mounted() {
+    if (!$.isEmptyObject(this.$route.query)) {
+      const _query = this.$route.query;
+      this.startPosition = _query.startPosition;
+      this.endPosition = _query.endPosition;
+      this.start = {
+        title: _query.startPosition,
+        point: {
+          lng: _query.startLng,
+          lat: _query.startLat
+        }
+      };
+      this.endPosition = _query.endPosition;
+      this.end = {
+        title: _query.endPosition,
+        point: {
+          lng: _query.endLng,
+          lat: _query.endLat
+        }
+      };
+    }
     this.updateTitle("换乘方案查询");
     $(".input-header").width($(window).width() * 0.7);
   }

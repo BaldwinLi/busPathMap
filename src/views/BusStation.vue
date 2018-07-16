@@ -19,6 +19,7 @@
           :results="searchResults"
           @on-submit="setBusPoi(0)"
           ref="search">
+          <a slot="left" style="width: 10rem;" @click="scanQRCode">站点扫一扫 <i class="iconfont icon-scan"></i></a>
           <a slot="right" v-show="isCanceled" class="iconfont icon-global_geo geo-setter" @click="setCurrentGeo"></a>
       <!-- cancel-text="搜索" -->
       <!-- <i slot="left" v-if="!isShowList" @click="hideList" class="fa fa-angle-left" style="font-size: 2.5rem; margin-right: 1rem;" aria-hidden="true"></i> -->
@@ -48,6 +49,7 @@
 import { forEach, cloneDeep } from "lodash";
 import { Cell, Search, Tab, TabItem, Flexbox, FlexboxItem } from "vux";
 import { mapMutations } from "vuex";
+import { loadWeChatSdk, scanWxQRCode } from "@/helper/jssdk-loader";
 import MapContainer from "@/components/map-container";
 import { commonPluginOptions } from "@/components/map-config";
 import { storeBusStationKeyword } from "@/helper/utils";
@@ -79,7 +81,9 @@ export default {
       searchResults: [],
       fstLine: {},
       busList: [],
-      isCanceled: true
+      isCanceled: true,
+      busLineNum: 0,
+      isHref: false
     };
   },
   methods: {
@@ -97,8 +101,10 @@ export default {
       }
     },
     onGeolocationComplete(event) {
-      this.searchWord = event.name;
+      this.searchWord = this.isHref ? this.searchWord : event.name;
       this.isCanceled = false;
+      this.isHref && this.selectBusline(this.busLineNum, true);
+      this.isHref = false;
     },
     setBusPoi(val) {
       val = val || this.searchResults[0];
@@ -134,16 +140,38 @@ export default {
     setCurrentGeo() {
       this.$refs["mapContainer"].getCurrentPosition();
     },
-    selectBusline(item) {
-      this.$refs.mapContainer.busline.getBusList(parseInt(item.replace(/\D/g, '')));
+    selectBusline(item, noRelocate) {
+      this.busLineNum = parseInt(item.replace(/\D/g, ""));
+      this.$refs.mapContainer.busline.getBusList(this.busLineNum);
       this.busList = [];
+      !noRelocate && this.relocate();
     },
     onBusLineSearchComplete(result) {
       this.$refs.mapContainer.busline.getBusLine(result.getBusListItem(0));
     },
+    scanQRCode() {
+      scanWxQRCode();
+    },
+    relocate() {
+      const params = $.param({
+        searchWord: this.searchWord,
+        busLineNum: this.busLineNum
+      });
+      window.location.href = `${window.location.origin +
+        window.location.pathname}#${this.$route.path}?${params}`;
+    },
     ...mapMutations(["updateTitle"])
   },
+  beforeCreate() {
+    loadWeChatSdk(["getLocation", "scanQRCode"]);
+  },
   mounted() {
+    if (!$.isEmptyObject(this.$route.query)) {
+      const _query = this.$route.query;
+      this.searchWord = _query.searchWord;
+      this.busLineNum = _query.busLineNum;
+      this.isHref = true;
+    }
     this.updateTitle("公交站点查询");
   }
 };

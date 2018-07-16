@@ -48,6 +48,7 @@ import { forEach, cloneDeep } from "lodash";
 import { Cell, Search, Tab, TabItem } from "vux";
 import { mapMutations } from "vuex";
 import MapContainer from "@/components/map-container";
+import { loadWeChatSdk } from '@/helper/jssdk-loader'
 import { commonPluginOptions } from "@/components/map-config";
 import { storeBusLineKeyword } from "@/helper/utils";
 import { setTimeout } from "timers";
@@ -114,6 +115,7 @@ export default {
       this.busNum = val.title;
       document.activeElement.blur();
       this.cancelSearch();
+      this.relocate();
     },
     reversePosition() {
       if (this.fstLine.lineItem) {
@@ -141,6 +143,7 @@ export default {
           : historyForwardBusline[index]
         ).title;
       }
+      this.relocate();
     },
     onFocus() {
       !this.busNum && setTimeout(() => {
@@ -166,9 +169,20 @@ export default {
         this.searchResults.length > 0 && (this.searchResults = []);
       });
     },
+    relocate() {
+      window.location.href = `${window.location.origin+ window.location.pathname}#${this.$route.path}?busNum=${this.busNum}`;
+    },
     ...mapMutations(["updateTitle"])
   },
+  beforeCreate() {
+    loadWeChatSdk([
+      'getLocation'
+    ]);
+  },
   mounted() {
+    if (this.$route.query['busNum']) {
+      this.busNum = this.$route.query['busNum'];
+    }
     this.updateTitle("公交线路查询");
   }
 };

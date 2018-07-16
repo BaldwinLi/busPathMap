@@ -10,7 +10,16 @@ module.exports = {
     // Paths
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
-    proxyTable: {},
+    proxyTable: {
+      '/dev_api': {
+        target: 'http://hostname:port/v1.0/h5',
+        // target: 'http://10.17.225.132:8080/Form_002_Define',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/dev_api': ''
+        }
+      }
+    },
 
     // Various Dev Server settings
     host: 'localhost', // can be overwritten by process.env.HOST
