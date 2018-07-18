@@ -36,7 +36,7 @@ window["initMapContainer"] = () => {
       }
     });
   });
-  $scope.location = new BMap.LocalSearch("大连", {
+  $scope.location = new BMap.LocalSearch("哈尔滨", {
     renderOptions:
       ($scope.options.type === "BUS_STATION" && {
         map: IMap
@@ -53,7 +53,7 @@ window["initMapContainer"] = () => {
 
   //   break;
   // case "BUS_LINE":
-  $scope.busline = new BMap.BusLineSearch("大连", {
+  $scope.busline = new BMap.BusLineSearch("哈尔滨", {
     renderOptions: {
       map: IMap,
       panel: "bus-path-result",
@@ -66,7 +66,7 @@ window["initMapContainer"] = () => {
   });
   // break;
   // case "TRANSIT_SOLUTION":
-  $scope.transit = new BMap.TransitRoute("大连", {
+  $scope.transit = new BMap.TransitRoute("哈尔滨", {
     renderOptions: {
       map: IMap,
       panel: "bus-path-result"
@@ -415,7 +415,7 @@ export default {
             121.618726,
             38.919333
           );
-          result.name = "大连";
+          result.name = "哈尔滨";
           window["IMap"].centerAndZoom(
             new BMap.Point(center.lng, center.lat),
             this.zoom

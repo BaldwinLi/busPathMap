@@ -181,7 +181,7 @@ export default {
     ...mapMutations(["updateTitle"])
   },
   beforeCreate() {
-    loadWeChatSdk(["getLocation"]);
+    loadWeChatSdk(["getLocation"]).then();
   },
   mounted() {
     this.updateTitle("公交线路查询");

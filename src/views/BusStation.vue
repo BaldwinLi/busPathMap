@@ -163,7 +163,7 @@ export default {
     ...mapMutations(["updateTitle"])
   },
   beforeCreate() {
-    loadWeChatSdk(["getLocation", "scanQRCode"]);
+    loadWeChatSdk(["getLocation", "scanQRCode"]).then();
   },
   mounted() {
     if (!$.isEmptyObject(this.$route.query)) {

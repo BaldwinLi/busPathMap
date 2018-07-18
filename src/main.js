@@ -33,7 +33,16 @@ Vue.use(Vuex)
 Vue.use(AjaxPlugin)
 Vue.use(AlertPlugin)
 Vue.use(ConfirmPlugin)
-
+// Vue.http.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+// Vue.prototype.$http.interceptors.request.use(
+//   config => {
+//     config.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
+//     config.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+//     return config;
+//   },
+//   err => Promise.reject(err)
+// );
+// .headers.common[appConsts['HTTP_HEADER_X_AUTH_VALUE']] = user.token;
 router.beforeEach(function (to, from, next) {
   store.commit('updateLoadingStatus', {
     isLoading: true

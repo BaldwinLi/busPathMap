@@ -296,7 +296,7 @@ export default {
       "stopRecord",
       "translateVoice",
       "getLocation"
-    ]);
+    ]).then();
   },
   mounted() {
     if (!$.isEmptyObject(this.$route.query)) {

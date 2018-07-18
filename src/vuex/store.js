@@ -39,7 +39,7 @@ export default new Vuex.Store({ // 名字自己定义
     rootPath: () => (window.location.origin + window.location.pathname),
     isLocal: () => proxyedHostNames.includes(window.location.hostname),
     appContextPath: () => (proxyedHostNames.includes(window.location.hostname) ?
-      `${window.location.origin}/dev_api/` : `${window.location.origin}/v1.0/h5/`),
+      `${window.location.origin}/dev_api/` : `${window.location.origin}/`),
     agentType: () => {
       if (/(iPhone|iPad|iPod|iOS)/i.test(navigator.userAgent)) {
         return 'IOS';
