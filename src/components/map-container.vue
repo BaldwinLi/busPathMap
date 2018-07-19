@@ -10,10 +10,10 @@
 import { forEach, debounce } from "lodash";
 import { getWxLocation } from "@/helper/jssdk-loader";
 import { mapMutations } from "vuex";
+import { coordinatesOffsetList } from "./map-config";
 let $scope;
 window["initMapContainer"] = () => {
   window["IMap"] = new BMap.Map("map-container");
-  $scope.getCurrentPosition();
   $scope.geoc = new BMap.Geocoder();
   // window["IMap"].centerAndZoom(new BMap.Point(121.45, 39.02), 11);
   window["IMap"].addEventListener("click", e => {
@@ -36,7 +36,7 @@ window["initMapContainer"] = () => {
       }
     });
   });
-  $scope.location = new BMap.LocalSearch("哈尔滨", {
+  $scope.location = new BMap.LocalSearch(IMap, {
     renderOptions:
       ($scope.options.type === "BUS_STATION" && {
         map: IMap
@@ -53,7 +53,7 @@ window["initMapContainer"] = () => {
 
   //   break;
   // case "BUS_LINE":
-  $scope.busline = new BMap.BusLineSearch("哈尔滨", {
+  $scope.busline = new BMap.BusLineSearch(IMap, {
     renderOptions: {
       map: IMap,
       panel: "bus-path-result",
@@ -66,7 +66,7 @@ window["initMapContainer"] = () => {
   });
   // break;
   // case "TRANSIT_SOLUTION":
-  $scope.transit = new BMap.TransitRoute("哈尔滨", {
+  $scope.transit = new BMap.TransitRoute(IMap, {
     renderOptions: {
       map: IMap,
       panel: "bus-path-result"
@@ -91,6 +91,7 @@ window["initMapContainer"] = () => {
 };
 
 import { mapGetters } from "vuex";
+import { setTimeout } from "timers";
 
 export default {
   name: "map-container",
@@ -217,7 +218,7 @@ export default {
       }
     },
     start(val) {
-      if (val.point && window['BMap']) {
+      if (val.point && window["BMap"]) {
         this.updateLoadingStatus({ isLoading: true });
         const _start = new BMap.Point(val.point.lng, val.point.lat);
         const _end =
@@ -239,7 +240,7 @@ export default {
       }
     },
     end(val) {
-      if ($scope.start.point && val.point && window['BMap']) {
+      if ($scope.start.point && val.point && window["BMap"]) {
         this.updateLoadingStatus({ isLoading: true });
         const _start = new BMap.Point(
           $scope.start.point.lng,
@@ -306,9 +307,11 @@ export default {
   },
   methods: {
     onLocalSearchComplete(result) {
+      // debugger;
       if (result) {
         this.poiList.length = 0;
-        forEach(result.tr, (poi, i) => {
+        for (let i = 0; i < result.getCurrentNumPois(); i++) {
+          const poi = result.getPoi(i);
           const toFilter =
             this.options.type === "BUS_STATION"
               ? poi.type === BMAP_POI_TYPE_BUSSTOP
@@ -323,16 +326,26 @@ export default {
                   }
             );
           }
-        });
+        }
+        // forEach(result.zr, (poi, i) => {
+
+        // });
         this.$emit("onPoiChange", this.poiList);
       }
       this.updateLoadingStatus({ isLoading: false });
     },
     onBusLineSearchComplete(result) {
+      // debugger;
       if (result) {
         if (this.directSetBusLine) {
-          const item = result.LA.find(e => e.name === this.busNum);
-          this.busline.getBusLine(item);
+          let item;
+          for (let i = 0; i < result.getNumBusList(); i++) {
+            const _busline = result.getBusListItem(i);
+            if (_busline.name === this.busNum) {
+              item = _busline;
+              this.busline.getBusLine(item);
+            }
+          }
         } else {
           this.$emit("onBusLineSearchComplete", result);
         }
@@ -340,12 +353,14 @@ export default {
       }
     },
     onTranitRouteSearchComplete(results) {
+      // debugger;
       if (results) {
         this.$emit("onTranitRouteSearchComplete", results);
       }
       this.updateLoadingStatus({ isLoading: false });
     },
     onResultsHtmlSet(html) {
+      // debugger;
       switch (this.options.type) {
         case "BUS_LINE":
           forEach(html.children, elem => {
@@ -365,13 +380,16 @@ export default {
     },
     getCurrentPosition() {
       const geolocation = new BMap.Geolocation();
+      this.updateLoadingStatus({ isLoading: true });
       getWxLocation().then(
-        success => {
+        result => {
           $scope.getCurrentPositionComplete(result);
         },
         error => {
           geolocation.getCurrentPosition(
-            result => {
+            //这里不能用ES6的箭头写法
+            function(result) {
+              // debugger;
               if (this.getStatus() == BMAP_STATUS_SUCCESS) {
                 $scope.getCurrentPositionComplete(result);
               } else {
@@ -388,62 +406,97 @@ export default {
           );
         }
       );
-      const localCity = new BMap.LocalCity();
-      localCity.get($scope.getCurrentPositionComplete);
+      // const localCity = new BMap.LocalCity();
+      // localCity.get($scope.getCurrentPositionComplete);
     },
     getCurrentPositionComplete(result) {
+      // debugger;
       let center;
-      if (result.latitude && result.longitude) {
-        center = result.point = result.center = {
-          lng: result.longitude,
-          lat: result.latitude
-        };
-        result.name = "";
-        window["IMap"].centerAndZoom(
-          new BMap.Point(center.lng, center.lat),
-          this.zoom
+      if (result.type === "wgs84") {
+        center = result.point = result.center = new BMap.Point(
+          result.longitude,
+          result.latitude
         );
+        result.name = "";
+        window["IMap"].centerAndZoom(center, this.zoom);
+        window["IMap"].addControl(new BMap.NavigationControl());
       } else {
         center = result.point || result.center;
-        if (result.level > 1) {
-          window["IMap"].centerAndZoom(
-            new BMap.Point(center.lng, center.lat),
-            this.zoom
-          );
-        } else {
+        if (result.level === 1) {
           center = result.point = result.center = new BMap.Point(
             121.618726,
             38.919333
           );
           result.name = "哈尔滨";
-          window["IMap"].centerAndZoom(
-            new BMap.Point(center.lng, center.lat),
-            this.zoom
+        } else result.point = result.center = center;
+      }
+      //坐标转换完之后的回调函数
+      const translateCallback = data => {
+        if (data.status === 0) {
+          const icon = new BMap.Icon(
+            "http://api0.map.bdimg.com/images/stop_icon.png",
+            new BMap.Size(15, 15),
+            {
+              offset: new BMap.Size(10, 25),
+              imageOffset: new BMap.Size(0, 0)
+            }
           );
+          icon.imageSize = new BMap.Size(15, 15);
+          const marker = new BMap.Marker(data.points[0], {
+            icon
+          }); // 创建标注
+          const finalCallback = res => {
+            res && (result.name = res.getPoi(0) && res.getPoi(0).title);
+            switch (this.options.type) {
+              case "BUS_STATION":
+                this.start.point = center;
+                this.location.searchNearby(result.name, this.start.point);
+            }
+            this.$emit("onGeolocationComplete", result);
+            this.updateLoadingStatus({ isLoading: false });
+          };
+          if (!result.name) {
+            new BMap.LocalSearch(data.points[0], {
+              onSearchComplete: finalCallback
+            }).searchNearby(
+              "公交站",
+              new BMap.Point(
+                // 121.618726,
+                // 38.919333
+                data.points[0].lng,
+                data.points[0].lat
+              ),
+              1000
+            );
+          } else {
+            finalCallback();
+          }
+          // this.location.searchNearby("", this.start.point);
+          window["IMap"].centerAndZoom(data.points[0], this.zoom);
+          window["IMap"].addOverlay(marker);
+          window["IMap"].addOverlay(new BMap.Circle(data.points[0], 1000, {
+            fillColor: "#0099ff",
+            strokeWeight: 1,
+            fillOpacity: 0.3,
+            strokeOpacity: 0.3
+          }));
+          window["IMap"].panTo(data.points[0]);
+          window["IMap"].enableScrollWheelZoom();
         }
+      };
+      if (["gcj02", "wgs84"].includes(result.type)) {
+        setTimeout(() => {
+          const convertor = new BMap.Convertor();
+          convertor.translate(
+            [center],
+            coordinatesOffsetList[result.type].x,
+            coordinatesOffsetList[result.type].y,
+            translateCallback
+          );
+        });
+      } else {
+        translateCallback({ status: 0, points: [center] });
       }
-
-      const icon = new BMap.Icon(
-        "http://api0.map.bdimg.com/images/stop_icon.png",
-        new BMap.Size(23, 25),
-        {
-          offset: new BMap.Size(10, 25),
-          imageOffset: new BMap.Size(0, 0)
-        }
-      );
-      icon.imageSize = new BMap.Size(15, 15);
-      var marker = new BMap.Marker(center, {
-        icon
-      }); // 创建标注
-      window["IMap"].addOverlay(marker);
-      window["IMap"].panTo(center);
-      window["IMap"].enableScrollWheelZoom();
-      switch (this.options.type) {
-        case "BUS_STATION":
-          this.start.point = center;
-          this.location.searchNearby(result.name, this.start.point);
-      }
-      this.$emit("onGeolocationComplete", result);
     },
     installPlugin() {
       forEach(this.pluginOptions, pluginOption => {

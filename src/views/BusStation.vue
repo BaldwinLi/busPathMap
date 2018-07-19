@@ -118,10 +118,11 @@ export default {
       this.cancelSearch();
     },
     onFocus() {
+      const scope = this;
       this.isCanceled = false;
       !this.searchWord &&
         setTimeout(() => {
-          this.searchResults = storeBusStationKeyword();
+          scope.searchResults = storeBusStationKeyword();
         });
     },
     onItemClick(index) {
@@ -129,12 +130,13 @@ export default {
       this.showPathResult = index === 1;
     },
     cancelSearch() {
+      const scope = this;
       setTimeout(() => {
-        this.$refs.search.isCancel = true;
-        this.$refs.search.emitEvent();
-        this.$refs.search.isFixed = false;
+        scope.$refs.search.isCancel = true;
+        scope.$refs.search.emitEvent();
+        scope.$refs.search.isFixed = false;
         // ref.$emit("on-cancel");
-        this.searchResults.length > 0 && (this.searchResults = []);
+        scope.searchResults.length > 0 && (scope.searchResults = []);
       });
     },
     setCurrentGeo() {
@@ -163,7 +165,15 @@ export default {
     ...mapMutations(["updateTitle"])
   },
   beforeCreate() {
-    loadWeChatSdk(["getLocation", "scanQRCode"]).then();
+    loadWeChatSdk(["getLocation", "scanQRCode"]).then(
+      success => {
+        success === "SUCCESS" &&
+          this.$refs["mapContainer"].getCurrentPosition();
+      },
+      error => {
+        this.$refs["mapContainer"].getCurrentPosition();
+      }
+    );
   },
   mounted() {
     if (!$.isEmptyObject(this.$route.query)) {

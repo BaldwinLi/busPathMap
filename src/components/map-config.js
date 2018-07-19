@@ -28,3 +28,14 @@ export const commonPluginOptions = [{
   //   }
   // }
 ];
+
+export const coordinatesOffsetList = {
+  wgs84: {
+    x: 1,
+    y: 5
+  },
+  gcj02: {
+    x: 3,
+    y: 5
+  }
+}

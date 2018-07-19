@@ -168,12 +168,14 @@ export default {
       // this.showPathResult = true;
     },
     onFocus(key) {
+      const scope = this;
       switch (key) {
         case "start":
           this.cancelSearch(this.$refs.endSearch);
           if (!this.startPosition) {
             setTimeout(() => {
-              this.searchResults = this.postionsHistory;
+              scope.postionsHistory.length > 0 &&
+                (scope.searchResults = scope.postionsHistory);
             });
           }
           break;
@@ -181,7 +183,8 @@ export default {
           this.cancelSearch(this.$refs.startSearch);
           if (!this.endPosition) {
             setTimeout(() => {
-              this.searchResults = this.postionsHistory;
+              scope.postionsHistory.length > 0 &&
+                (scope.searchResults = scope.postionsHistory);
             });
           }
           break;
@@ -191,12 +194,13 @@ export default {
       // this.showRecord = false;
     },
     cancelSearch(ref) {
+      const scope = this;
       setTimeout(() => {
         ref.isCancel = true;
         ref.emitEvent();
         ref.isFixed = false;
         // ref.$emit("on-cancel");
-        this.searchResults.length > 0 && (this.searchResults = []);
+        scope.searchResults.length > 0 && (scope.searchResults = []);
       });
     },
     reversePosition() {
@@ -227,6 +231,7 @@ export default {
       this.$refs["mapContainer"].getCurrentPosition();
     },
     onGeolocationComplete(result) {
+      // debugger
       if (!this._query) {
         this.start = {
           title: result.name,
@@ -277,16 +282,18 @@ export default {
       });
     },
     relocate() {
-      const params = $.param({
-        startPosition: this.startPosition,
-        startLng: this.start.point.lng,
-        startLat: this.start.point.lat,
-        endPosition: this.endPosition,
-        endLng: this.end.point.lng,
-        endLat: this.end.point.lat
-      });
-      window.location.href = `${window.location.origin +
-        window.location.pathname}#${this.$route.path}?${params}`;
+      if (this.start.point && this.end.point) {
+        const params = $.param({
+          startPosition: this.startPosition,
+          startLng: this.start.point.lng,
+          startLat: this.start.point.lat,
+          endPosition: this.endPosition,
+          endLng: this.end.point.lng,
+          endLat: this.end.point.lat
+        });
+        window.location.href = `${window.location.origin +
+          window.location.pathname}#${this.$route.path}?${params}`;
+      }
     },
     ...mapMutations(["updateTitle"])
   },
@@ -296,7 +303,15 @@ export default {
       "stopRecord",
       "translateVoice",
       "getLocation"
-    ]).then();
+    ]).then(
+      success => {
+        success === "SUCCESS" &&
+          this.$refs["mapContainer"].getCurrentPosition();
+      },
+      error => {
+        this.$refs["mapContainer"].getCurrentPosition();
+      }
+    );
   },
   mounted() {
     if (!$.isEmptyObject(this.$route.query)) {
@@ -338,7 +353,7 @@ export default {
   right: 0;
   margin: 0.5rem;
   position: absolute;
-  z-index: 10;
+  z-index: 7;
   cursor: pointer;
 }
 

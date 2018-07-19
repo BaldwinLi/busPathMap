@@ -83,17 +83,19 @@ export default {
     onBusLineSearchComplete(event) {
       this.reverseLineList.length = 0;
       this.forwardLineList.length = 0;
-      forEach(event["LA"], (line, index) => {
+      for (let i = 0; i < event.getNumBusList(); i++) {
+        const line = event.getBusListItem(i);
         const lineObj = {
           title: line.name,
-          lineItem: event.getBusListItem(index),
-          index: Math.floor(index / 2),
-          isForward: !(index % 2)
+          lineItem: event.getBusListItem(i),
+          index: Math.floor(i / 2),
+          isForward: !(i % 2)
         };
-        index % 2
+        i % 2
           ? this.reverseLineList.push(lineObj)
           : this.forwardLineList.push(lineObj);
-      });
+      }
+      // forEach(event["XA"], (line, index) => {});
       this.forwardLineList = this.forwardLineList.concat(historyForwardBusline);
       this.reverseLineList = this.reverseLineList.concat(historyReverseBusline);
       this.searchResults = this.forwardLineList;
@@ -150,13 +152,14 @@ export default {
       this.relocate();
     },
     onFocus() {
+      const scope = this;
       !this.busNum &&
         setTimeout(() => {
-          this.searchResults = historyForwardBusline = storeBusLineKeyword().map(
+          scope.searchResults = historyForwardBusline = storeBusLineKeyword().map(
             v => v.forward
           );
-          this.forwardLineList = storeBusLineKeyword().map(v => v.forward);
-          this.reverseLineList = historyReverseBusline = storeBusLineKeyword().map(
+          scope.forwardLineList = storeBusLineKeyword().map(v => v.forward);
+          scope.reverseLineList = historyReverseBusline = storeBusLineKeyword().map(
             v => v.reverse
           );
         });
@@ -166,12 +169,13 @@ export default {
       this.showPathResult = index === 1;
     },
     cancelSearch() {
+      const scope = this;
       setTimeout(() => {
-        this.$refs.search.isCancel = true;
-        this.$refs.search.emitEvent();
-        this.$refs.search.isFixed = false;
+        scope.$refs.search.isCancel = true;
+        scope.$refs.search.emitEvent();
+        scope.$refs.search.isFixed = false;
         // ref.$emit("on-cancel");
-        this.searchResults.length > 0 && (this.searchResults = []);
+        scope.searchResults.length > 0 && (scope.searchResults = []);
       });
     },
     relocate() {
@@ -181,7 +185,15 @@ export default {
     ...mapMutations(["updateTitle"])
   },
   beforeCreate() {
-    loadWeChatSdk(["getLocation"]).then();
+    loadWeChatSdk(["getLocation"]).then(
+      success => {
+        success === "SUCCESS" &&
+          this.$refs["mapContainer"].getCurrentPosition();
+      },
+      error => {
+        this.$refs["mapContainer"].getCurrentPosition();
+      }
+    );
   },
   mounted() {
     this.updateTitle("公交线路查询");
