@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Home from '@/views/Home'
-import TransitRoute from '@/views/TransitRoute'
+import RouteSolution from '@/views/RouteSolution'
 import BusLine from '@/views/BusLine'
 import BusStation from '@/views/BusStation'
 
@@ -14,9 +14,9 @@ export default new Router({
       component: Home
     },
     {
-      path: '/transit_route',
-      name: 'TransitRoute',
-      component: TransitRoute
+      path: '/route_solution',
+      name: 'RouteSolution',
+      component: RouteSolution
     },
     {
       path: '/bus_line',

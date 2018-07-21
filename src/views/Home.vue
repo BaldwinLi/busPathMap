@@ -1,7 +1,7 @@
 <template>
   <div class="home-content">
     <box gap="10px 10px">
-      <router-link to="/transit_route">
+      <router-link to="/route_solution">
         <x-button plain :gradients="['#1D62F0', '#19D5FD']" type="primary" class="x-button-style">换乘方案</x-button>
       </router-link>
       <router-link to="/bus_line">

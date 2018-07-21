@@ -33,6 +33,7 @@
       :pluginOptions="commonPluginOptions"
       :showMap="showMap"
       :showPathResult="showPathResult"
+      @onLoadComplete="loadComplete"
       @onPoiChange="onPoiChange"
       @onGeolocationComplete="onGeolocationComplete"
       @onBusLineSearchComplete="onBusLineSearchComplete">
@@ -162,18 +163,25 @@ export default {
       window.location.href = `${window.location.origin +
         window.location.pathname}#${this.$route.path}?${params}`;
     },
+    loadComplete() {
+      loadWeChatSdk([
+        "startRecord",
+        "stopRecord",
+        "translateVoice",
+        "getLocation"
+      ]).then(
+        success => {
+          success === "SUCCESS" &&
+            this.$refs["mapContainer"].getCurrentPosition();
+        },
+        error => {
+          this.$refs["mapContainer"].getCurrentPosition();
+        }
+      );
+    },
     ...mapMutations(["updateTitle"])
   },
   beforeCreate() {
-    loadWeChatSdk(["getLocation", "scanQRCode"]).then(
-      success => {
-        success === "SUCCESS" &&
-          this.$refs["mapContainer"].getCurrentPosition();
-      },
-      error => {
-        this.$refs["mapContainer"].getCurrentPosition();
-      }
-    );
   },
   mounted() {
     if (!$.isEmptyObject(this.$route.query)) {

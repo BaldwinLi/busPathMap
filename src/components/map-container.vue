@@ -1,7 +1,7 @@
 <template>
   <div class="home-content">
     <div ref="mapContainer" v-show="showMap" id="map-container"></div>
-    <div ref="pathResult" v-show="showPathResult" id="bus-path-result"></div>
+    <div ref="pathResult" v-show="showPathResult" id="path-result"></div>
   </div>
 </template>
 
@@ -12,7 +12,8 @@ import { getWxLocation } from "@/helper/jssdk-loader";
 import { mapMutations } from "vuex";
 import { coordinatesOffsetList } from "./map-config";
 let $scope;
-window["initMapContainer"] = () => {
+window["initMapContainer"] = unTriggerLoadComplete => {
+  // forEach;
   window["IMap"] = new BMap.Map("map-container");
   $scope.geoc = new BMap.Geocoder();
   // window["IMap"].centerAndZoom(new BMap.Point(121.45, 39.02), 11);
@@ -36,57 +37,13 @@ window["initMapContainer"] = () => {
       }
     });
   });
-  $scope.location = new BMap.LocalSearch(IMap, {
-    renderOptions:
-      ($scope.options.type === "BUS_STATION" && {
-        map: IMap
-        // panel: "bus-path-result"
-      }) ||
-      {},
-    pageCapacity: $scope.options.type === "BUS_STATION" ? 100 : 10,
-    onMarkersSet: $scope.onMarkersSet,
-    onResultsHtmlSet: $scope.onResultsHtmlSet,
-    onSearchComplete: $scope.onLocalSearchComplete
-  });
-  // switch ($scope.options.type) {
-  // case "LOCAL_SEARCH":
-
-  //   break;
-  // case "BUS_LINE":
-  $scope.busline = new BMap.BusLineSearch(IMap, {
-    renderOptions: {
-      map: IMap,
-      panel: "bus-path-result",
-      autoViewport: true
-    },
-    onGetBusListComplete: $scope.onBusLineSearchComplete,
-    onGetBusLineComplete: $scope.onGetBusLineComplete,
-    onBusListHtmlSet: $scope.onResultsHtmlSet,
-    onMarkersSet: $scope.onMarkersSet
-  });
-  // break;
-  // case "TRANSIT_SOLUTION":
-  $scope.transit = new BMap.TransitRoute(IMap, {
-    renderOptions: {
-      map: IMap,
-      panel: "bus-path-result"
-    },
-    policy: BMAP_TRANSIT_POLICY_RECOMMEND,
-    onSearchComplete: $scope.onTranitRouteSearchComplete,
-    onResultsHtmlSet: $scope.onResultsHtmlSet
-  });
-  // const point1 = new BMap.Point(121.639142, 38.928159);
-  // const point2 = new BMap.Point(121.600622, 38.901096);
-  // $scope.transit.search(point1, point2);
-  // break;
-  // }
   $scope.installPlugin();
-  $scope.$emit("onLoadComplete", $scope);
+  !unTriggerLoadComplete && $scope.$emit("onLoadComplete", $scope);
   $($scope.$refs.mapContainer).height(
-    $("body").height() + parseInt($scope.height || 0)
+    $(window).height() + parseInt($scope.height || 0)
   );
   $($scope.$refs.mapContainer).width(
-    $("body").width() + parseInt($scope.width || 0)
+    $(window).width() + parseInt($scope.width || 0)
   );
 };
 
@@ -97,6 +54,8 @@ export default {
   name: "map-container",
   data() {
     return {
+      isCityPosition: false,
+      curretPoint: {},
       busline: Object,
       transit: Object,
       geoc: Object,
@@ -180,12 +139,12 @@ export default {
     height(height) {
       // this.$refs["mapContainer"] &&
       //   (this.$refs["mapContainer"].style.height = height);
-      $("#map-container").height($(document).height() + parseInt(height || 0));
+      $("#map-container").height($(window).height() + parseInt(height || 0));
     },
     width(width) {
       // this.$refs["mapContainer"] &&
       //   (this.$refs["mapContainer"].style.width = width);
-      $("#map-container").width($(document).width() + parseInt(width || 0));
+      $("#map-container").width($(window).width() + parseInt(width || 0));
     },
     busNum(val) {
       let numberMatch;
@@ -252,38 +211,7 @@ export default {
     },
     showMap(val) {
       if (val) {
-        this.updateLoadingStatus({ isLoading: true });
-        switch ($scope.options.type) {
-          case "TRANSIT_SOLUTION":
-            const _start = new BMap.Point(
-              $scope.start.point && $scope.start.point.lng,
-              $scope.start.point && $scope.start.point.lat
-            );
-            const _end = new BMap.Point(
-              $scope.end.point && $scope.end.point.lng,
-              $scope.end.point && $scope.end.point.lat
-            );
-            $scope.transit.search(_start, _end);
-            break;
-          case "BUS_LINE":
-            this.directSetBusLine = true;
-            const numberMatch = this.busNum.match(/\d+/);
-            if (numberMatch) $scope.busline.getBusList(numberMatch[0]);
-            else this.updateLoadingStatus({ isLoading: false });
-            break;
-          case "BUS_STATION":
-            if ($scope.start.point) {
-              const _start = new BMap.Point(
-                $scope.start.point.lng,
-                $scope.start.point.lat
-              );
-              this.location.searchNearby(
-                ($scope.start.title && $scope.start.title.split("-")[0]) || "",
-                _start
-              );
-            } else this.updateLoadingStatus({ isLoading: false });
-            break;
-        }
+        this.refreshMap();
       }
     },
     showPathResult(val) {
@@ -303,6 +231,10 @@ export default {
       //       break;
       //   }
       // }
+    },
+    options(option) {
+      initMapContainer(true);
+      this.refreshMap();
     }
   },
   methods: {
@@ -352,10 +284,14 @@ export default {
         this.directSetBusLine = false;
       }
     },
-    onTranitRouteSearchComplete(results) {
+    onRouteSearchComplete(results) {
       // debugger;
       if (results) {
-        this.$emit("onTranitRouteSearchComplete", results);
+        const routeResults = [];
+        for (let i = 0; i < results.getNumPlans(); i++) {
+          routeResults.push(results.getPlan(i));
+        }
+        this.$emit("onRouteSearchComplete", routeResults);
       }
       this.updateLoadingStatus({ isLoading: false });
     },
@@ -393,6 +329,7 @@ export default {
               if (this.getStatus() == BMAP_STATUS_SUCCESS) {
                 $scope.getCurrentPositionComplete(result);
               } else {
+                $scope.isCityPosition = true;
                 const localCity = new BMap.LocalCity();
                 localCity.get($scope.getCurrentPositionComplete);
               }
@@ -422,13 +359,17 @@ export default {
         window["IMap"].addControl(new BMap.NavigationControl());
       } else {
         center = result.point || result.center;
-        if (result.level === 1) {
-          center = result.point = result.center = new BMap.Point(
-            121.618726,
-            38.919333
-          );
-          result.name = "哈尔滨";
-        } else result.point = result.center = center;
+        // if (result.level === 1) {
+        //   center = result.point = result.center = new BMap.Point(
+        //     121.618726,
+        //     38.919333
+        //   );
+        if (this.isCityPosition) {
+          // result.name += "中心";
+          this.isCityPosition = false;
+        }
+        // } else
+        result.point = result.center = center;
       }
       //坐标转换完之后的回调函数
       const translateCallback = data => {
@@ -446,7 +387,13 @@ export default {
             icon
           }); // 创建标注
           const finalCallback = res => {
-            res && (result.name = res.getPoi(0) && res.getPoi(0).title);
+            res &&
+              (result.name =
+                (res.surroundingPois[0] && res.surroundingPois[0].title) || "");
+            $scope.curretPoint = center;
+            $scope.initBusline();
+            $scope.initRoute();
+            $scope.initLocation();
             switch (this.options.type) {
               case "BUS_STATION":
                 this.start.point = center;
@@ -456,30 +403,34 @@ export default {
             this.updateLoadingStatus({ isLoading: false });
           };
           if (!result.name) {
-            new BMap.LocalSearch(data.points[0], {
-              onSearchComplete: finalCallback
-            }).searchNearby(
-              "公交站",
-              new BMap.Point(
-                // 121.618726,
-                // 38.919333
-                data.points[0].lng,
-                data.points[0].lat
-              ),
-              1000
-            );
+            // new BMap.LocalSearch(data.points[0], {
+            //   onSearchComplete: finalCallback
+            // }).searchNearby(
+            //   "公交站",
+            //   new BMap.Point(
+            //     // 121.618726,
+            //     // 38.919333
+            //     data.points[0].lng,
+            //     data.points[0].lat
+            //   ),
+            //   1000
+            // );
+            $scope.geoc.getLocation(data.points[0], finalCallback);
           } else {
+            // $scope.geoc.getLocation(data.points[0], finalCallback);
             finalCallback();
           }
           // this.location.searchNearby("", this.start.point);
           window["IMap"].centerAndZoom(data.points[0], this.zoom);
           window["IMap"].addOverlay(marker);
-          window["IMap"].addOverlay(new BMap.Circle(data.points[0], 1000, {
-            fillColor: "#0099ff",
-            strokeWeight: 1,
-            fillOpacity: 0.3,
-            strokeOpacity: 0.3
-          }));
+          window["IMap"].addOverlay(
+            new BMap.Circle(data.points[0], 1000, {
+              fillColor: "#0099ff",
+              strokeWeight: 1,
+              fillOpacity: 0.3,
+              strokeOpacity: 0.3
+            })
+          );
           window["IMap"].panTo(data.points[0]);
           window["IMap"].enableScrollWheelZoom();
         }
@@ -552,6 +503,107 @@ export default {
       }
       this.updateLoadingStatus({ isLoading: false });
     },
+    refreshMap() {
+      setTimeout(() => {
+        // window["IMap"].addControl(new BMap.NavigationControl());
+        // window["IMap"].panTo(this.curretPoint);
+        // window["IMap"].enableScrollWheelZoom();
+        this.updateLoadingStatus({ isLoading: true });
+        switch ($scope.options.type) {
+          case "DRIVING_SOLUTION":
+          case "WALKING_SOLUTION":
+          case "TRANSIT_SOLUTION":
+            window["IMap"].centerAndZoom(this.curretPoint, this.zoom);
+            initMapContainer(true);
+            const _start = new BMap.Point(
+              $scope.start.point && $scope.start.point.lng,
+              $scope.start.point && $scope.start.point.lat
+            );
+            const _end = new BMap.Point(
+              $scope.end.point && $scope.end.point.lng,
+              $scope.end.point && $scope.end.point.lat
+            );
+            $scope.transit.search(_start, _end);
+            break;
+          case "BUS_LINE":
+            this.directSetBusLine = true;
+            const numberMatch = this.busNum.match(/\d+/);
+            if (numberMatch) $scope.busline.getBusList(numberMatch[0]);
+            else this.updateLoadingStatus({ isLoading: false });
+            break;
+          case "BUS_STATION":
+            if ($scope.start.point) {
+              const _start = new BMap.Point(
+                $scope.start.point.lng,
+                $scope.start.point.lat
+              );
+              this.location.searchNearby(
+                ($scope.start.title && $scope.start.title.split("-")[0]) || "",
+                _start
+              );
+            } else this.updateLoadingStatus({ isLoading: false });
+            break;
+        }
+      });
+    },
+    initRoute(solution) {
+      let routeType;
+      switch ($scope.options.type) {
+        case "TRANSIT_SOLUTION":
+          routeType = "TransitRoute";
+          // routePolicy = BMAP_TRANSIT_POLICY_RECOMMEND;
+          break;
+        case "DRIVING_SOLUTION":
+          routeType = "DrivingRoute";
+          // routePolicy = BMAP_DRIVING_POLICY_LEAST_TIME;
+          break;
+        case "WALKING_SOLUTION":
+          routeType = "WalkingRoute";
+          break;
+      }
+      routeType &&
+        ($scope.transit = new BMap[routeType](this.curretPoint, {
+          renderOptions: {
+            map: IMap,
+            panel: "path-result"
+          },
+          policy:
+            solution && solution.advantages[0] && solution.advantages[0].policy,
+          onSearchComplete: $scope.onRouteSearchComplete,
+          onResultsHtmlSet: $scope.onResultsHtmlSet
+        }));
+    },
+    initBusline() {
+      $scope.busline = new BMap.BusLineSearch(this.curretPoint, {
+        renderOptions: {
+          map: IMap,
+          panel: "path-result",
+          autoViewport: true
+        },
+        onGetBusListComplete: $scope.onBusLineSearchComplete,
+        onGetBusLineComplete: $scope.onGetBusLineComplete,
+        onBusListHtmlSet: $scope.onResultsHtmlSet,
+        onMarkersSet: $scope.onMarkersSet
+      });
+    },
+    initLocation() {
+      $scope.location = new BMap.LocalSearch(this.curretPoint, {
+        renderOptions:
+          ($scope.options.type === "BUS_STATION" && {
+            map: IMap
+            // panel: "path-result"
+          }) ||
+          {},
+        pageCapacity: $scope.options.type === "BUS_STATION" ? 100 : 10,
+        onMarkersSet: $scope.onMarkersSet,
+        onResultsHtmlSet: $scope.onResultsHtmlSet,
+        onSearchComplete: $scope.onLocalSearchComplete
+      });
+    },
+    quertRoute(solution) {
+      this.initRoute(solution);
+      this.transit.search(this.start.point, this.end.point);
+    },
     ...mapMutations(["updateLoadingStatus"])
   },
   beforeCreate() {},
@@ -570,15 +622,13 @@ export default {
       );
       document.getElementsByTagName("head")[0].appendChild(scriptEl);
     } else {
-      initMapContainer();
+      initMapContainer(true);
     }
-    $("#map-container").height(
-      $(document).height() + parseInt(this.height || 0)
-    );
-    $("#map-container").width($(document).width() + parseInt(this.width || 0));
+    $("#map-container").height($(window).height() + parseInt(this.height || 0));
+    $("#map-container").width($(window).width() + parseInt(this.width || 0));
   },
   destroyed() {
-    delete window["BMap"];
+    // delete window["BMap"];
   }
 };
 </script>

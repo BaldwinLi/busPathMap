@@ -1,9 +1,15 @@
 <template>
   <div class="trans-main">
     <!-- speech x-webkit-speech -->
+     <tab>
+      <tab-item :selected="routeType.transit" @on-item-click="onRouteTypeClick">公交</tab-item>
+      <tab-item :selected="routeType.driving" @on-item-click="onRouteTypeClick">自驾</tab-item>
+      <tab-item :selected="routeType.walking" @on-item-click="onRouteTypeClick">步行</tab-item>
+    </tab>
     <tab>
-      <tab-item :selected="showMap" @on-item-click="onItemClick">换乘路线图</tab-item>
-      <tab-item :selected="showPathResult" @on-item-click="onItemClick">换乘方案列表</tab-item>
+      <tab-item v-if="true" :selected="showSolutionList" @on-item-click="onItemClick">公交换乘方案列表</tab-item>
+      <tab-item :selected="showMap" @on-item-click="onItemClick">方案路线图</tab-item>
+      <tab-item :selected="showPathResult" @on-item-click="onItemClick">方案结果明细</tab-item>
     </tab>
     <cell primary="content" class="search-field" v-show="showMap">
       <div slot="title" class="input-header">
@@ -62,20 +68,20 @@
       :end="end"
       :options="options" 
       :pluginOptions="commonPluginOptions"
-      :height="-43"
+      :height="-88"
       :showMap="showMap"
       :showPathResult="showPathResult"
       @onLoadComplete="loadComplete"
       @onPoiChange="onPoiChange"
       @onGetClickPoi="onGetClickPoi"
-      @onTranitRouteSearchComplete="TranitRouteSearchComplete"
+      @onRouteSearchComplete="routeSearchComplete"
       @onGeolocationComplete="onGeolocationComplete">
     </map-container>
   </div>
 </template>
 
 <script>
-import { isObject, debounce } from "lodash";
+import { isObject, debounce, forEach } from "lodash";
 import { Search, Cell, Divider, Tab, TabItem } from "vux";
 import { mapMutations } from "vuex";
 import MapContainer from "@/components/map-container";
@@ -85,7 +91,7 @@ import { loadWeChatSdk, wxStopRecordAndTranslate } from "@/helper/jssdk-loader";
 import { storePositionKeyword } from "@/helper/utils";
 // let $scope;
 export default {
-  name: "transit-route",
+  name: "route-solution",
   data() {
     return {
       startPosition: "",
@@ -99,13 +105,20 @@ export default {
         policy: 0
       },
       commonPluginOptions,
+      showSolutionList: false,
       showMap: true,
       showPathResult: false,
       isNeedToClear: false,
       startCache: "",
       endCache: "",
       postionsHistory: storePositionKeyword(),
-      _query: undefined
+      _query: undefined,
+      routeType: {
+        transit: true,
+        driving: false,
+        walking: false
+      },
+      routeResults: []
     };
   },
   components: {
@@ -120,7 +133,22 @@ export default {
     onSpeechChange(value) {
       alert(value);
     },
-    loadComplete(event) {},
+    loadComplete(event) {
+      loadWeChatSdk([
+        "startRecord",
+        "stopRecord",
+        "translateVoice",
+        "getLocation"
+      ]).then(
+        success => {
+          success === "SUCCESS" &&
+            this.$refs["mapContainer"].getCurrentPosition();
+        },
+        error => {
+          this.$refs["mapContainer"].getCurrentPosition();
+        }
+      );
+    },
     onPoiChange(result) {
       if (this.isNeedToClear) {
         // const startText = this.startPosition;
@@ -162,7 +190,77 @@ export default {
       this.postionsHistory = storePositionKeyword(value);
       this.relocate();
     },
-    TranitRouteSearchComplete(event) {
+    routeSearchComplete(event) {
+      this.routeResults.length = 0;
+      const routesNums = [];
+      const durations = [];
+      const distances = [];
+      const sumWalkLineDistances = [];
+      forEach(event, item => {
+        let sumViaStops = 0,
+          firstWalkLineDistance = 0,
+          sumWalkLineDistance = 0,
+          routesNum;
+        const viaStopsList = [];
+        if (typeof item.getLine !== "undefined") {
+          routesNum = item.getNumLines();
+          for (let i = 0; i < routesNum; i++) {
+            const line = item.getLine(i);
+            i === 0 &&
+              (firstWalkLineDistance += item.getRoute(i).getDistance(false));
+            sumWalkLineDistance += item.getRoute(i).getDistance(false);
+            sumViaStops += line.getNumViaStops();
+            sumViaStops += line.getNumViaStops();
+            viaStopsList.push(line.title);
+            // for (let j = 0; j < line.getNumViaStops())
+          }
+        }
+        const distance = item.getDistance();
+        const duration = item.getDuration(false);
+        sumWalkLineDistances.push(sumWalkLineDistance);
+        routesNum && routesNums.push(routesNum);
+        durations.push(duration);
+        distances.push(distance);
+        this.routeResults.push({
+          viaStopsNum: sumViaStops && sumViaStops + "站",
+          distance,
+          duration,
+          viaStopsList,
+          firstWalkLineDistance,
+          sumWalkLineDistance,
+          routesNum,
+          advantages: []
+        });
+      });
+      this.routeResults.forEach(e => {
+        e.sumWalkLineDistance === Math.min.apply(Math, sumWalkLineDistances) &&
+          e.advantages.push({
+            text: "步行少",
+            policy: BMAP_TRANSIT_POLICY_LEAST_WALKING
+          });
+        e.routesNum &&
+          e.routesNum === Math.min.apply(Math, routesNums) &&
+          e.advantages.push({
+            text: "换乘少",
+            policy: BMAP_TRANSIT_POLICY_LEAST_TRANSFER
+          });
+        e.duration === Math.min.apply(Math, durations) &&
+          e.advantages.push({
+            text: this.options.type === "TRANSIT_SOLUTION"
+                ? "时间短"
+                : "避免拥堵",
+            policy:
+              this.options.type === "TRANSIT_SOLUTION"
+                ? BMAP_TRANSIT_POLICY_LEAST_TIME
+                : BMAP_DRIVING_POLICY_AVOID_CONGESTION
+          });
+        // this.options.type === "DRIVING_SOLUTION" &&
+        //   e.distance === Math.min.apply(Math, distances) &&
+        //   e.advantages.push({
+        //     text: "距离短",
+        //     policy: BMAP_DRIVING_POLICY_LEAST_DISTANCE
+        //   });
+      });
       // this.searchResults = [];
       // this.showMap = false;
       // this.showPathResult = true;
@@ -223,9 +321,38 @@ export default {
       }
       this.isNeedToClear = true;
     },
+    onRouteTypeClick(index) {
+      switch (index) {
+        case 0:
+          this.options = {
+            type: "TRANSIT_SOLUTION",
+            showType: "MAP_RESULT",
+            policy: 0
+          };
+          break;
+        case 1:
+          this.options = {
+            type: "DRIVING_SOLUTION",
+            showType: "MAP_RESULT",
+            policy: 0
+          };
+          break;
+        case 2:
+          this.options = {
+            type: "WALKING_SOLUTION",
+            showType: "MAP_RESULT",
+            policy: 0
+          };
+          break;
+      }
+      this.routeType.transit = index === 0;
+      this.routeType.driving = index === 1;
+      this.routeType.walking = index === 2;
+    },
     onItemClick(index) {
-      this.showMap = index === 0;
-      this.showPathResult = index === 1;
+      this.showSolutionList = index === 0;
+      this.showMap = index === 1;
+      this.showPathResult = index === 2;
     },
     setCurrentGeo() {
       this.$refs["mapContainer"].getCurrentPosition();
@@ -281,6 +408,9 @@ export default {
           this.endPosition = res;
       });
     },
+    selectSolution(solution) {
+      this.$refs["mapContainer"].quertRoute(solution);
+    },
     relocate() {
       if (this.start.point && this.end.point) {
         const params = $.param({
@@ -297,22 +427,7 @@ export default {
     },
     ...mapMutations(["updateTitle"])
   },
-  beforeCreate() {
-    loadWeChatSdk([
-      "startRecord",
-      "stopRecord",
-      "translateVoice",
-      "getLocation"
-    ]).then(
-      success => {
-        success === "SUCCESS" &&
-          this.$refs["mapContainer"].getCurrentPosition();
-      },
-      error => {
-        this.$refs["mapContainer"].getCurrentPosition();
-      }
-    );
-  },
+  beforeCreate() {},
   mounted() {
     if (!$.isEmptyObject(this.$route.query)) {
       this._query = this.$route.query;

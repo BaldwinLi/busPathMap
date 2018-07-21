@@ -22,8 +22,8 @@
       <!-- <i slot="left" v-if="!isShowList" @click="hideList" class="fa fa-angle-left" style="font-size: 2.5rem; margin-right: 1rem;" aria-hidden="true"></i> -->
       </search>
       </div>
-      <div slot class="input-body">
-        <i class="fa fa-exchange reverse-position" aria-hidden="true" @click="reversePosition"></i>
+      <div slot class="input-body" @click="reversePosition">
+        <i class="fa fa-exchange reverse-position" aria-hidden="true" ></i>
       </div>
     </cell>
     <map-container
@@ -52,8 +52,8 @@ import { loadWeChatSdk } from "@/helper/jssdk-loader";
 import { commonPluginOptions } from "@/components/map-config";
 import { storeBusLineKeyword } from "@/helper/utils";
 import { setTimeout } from "timers";
-let historyForwardBusline;
-let historyReverseBusline;
+let historyForwardBusline = [];
+let historyReverseBusline = [];
 export default {
   components: {
     Search,
@@ -100,7 +100,22 @@ export default {
       this.reverseLineList = this.reverseLineList.concat(historyReverseBusline);
       this.searchResults = this.forwardLineList;
     },
-    loadComplete(event) {},
+    loadComplete(event) {
+      loadWeChatSdk([
+        "startRecord",
+        "stopRecord",
+        "translateVoice",
+        "getLocation"
+      ]).then(
+        success => {
+          success === "SUCCESS" &&
+            this.$refs["mapContainer"].getCurrentPosition();
+        },
+        error => {
+          this.$refs["mapContainer"].getCurrentPosition();
+        }
+      );
+    },
     onGeolocationComplete(event) {
       if (this.$route.query["busNum"]) {
         this.busNum = this.$route.query["busNum"];
@@ -144,10 +159,21 @@ export default {
               return true;
             }
           });
-        this.busNum = (isForward
-          ? historyReverseBusline[index]
-          : historyForwardBusline[index]
-        ).title;
+        let lineText;
+        if (
+          historyReverseBusline.length === 0 ||
+          historyForwardBusline.length === 0
+        ) {
+          const _regExp = new RegExp('(?<=\\().*?(?=\\))')
+          const lineMatch = this.busNum.match(_regExp);
+          lineText = lineMatch && lineMatch[0];
+          this.busNum = this.busNum.replace(_regExp, lineText.split('-').reverse().join('-'));
+        } else {
+          this.busNum = (isForward
+            ? historyReverseBusline[index]
+            : historyForwardBusline[index]
+          ).title;
+        }
       }
       this.relocate();
     },
@@ -184,17 +210,7 @@ export default {
     },
     ...mapMutations(["updateTitle"])
   },
-  beforeCreate() {
-    loadWeChatSdk(["getLocation"]).then(
-      success => {
-        success === "SUCCESS" &&
-          this.$refs["mapContainer"].getCurrentPosition();
-      },
-      error => {
-        this.$refs["mapContainer"].getCurrentPosition();
-      }
-    );
-  },
+  beforeCreate() {},
   mounted() {
     this.updateTitle("公交线路查询");
   }
@@ -203,6 +219,7 @@ export default {
 
 <style scoped>
 .input-body {
+  width: 8rem;
   text-align: center;
 }
 .reverse-position {

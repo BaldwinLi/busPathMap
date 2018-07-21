@@ -7,7 +7,7 @@ import {
 const $Timeout = (reject) => {
   let overtime = 0;
   const timeout = setInterval(() => {
-    if (overtime === 4) {
+    if (overtime === 2) {
       clearInterval(timeout);
       reject('timeout');
     } else overtime++;
