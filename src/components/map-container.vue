@@ -286,7 +286,7 @@ export default {
     },
     onRouteSearchComplete(results) {
       // debugger;
-      if (results) {
+      if (results && !$.isEmptyObject(results)) {
         const routeResults = [];
         for (let i = 0; i < results.getNumPlans(); i++) {
           routeResults.push(results.getPlan(i));
@@ -505,16 +505,19 @@ export default {
     },
     refreshMap() {
       setTimeout(() => {
+        // $scope.initLocation();
         // window["IMap"].addControl(new BMap.NavigationControl());
         // window["IMap"].panTo(this.curretPoint);
         // window["IMap"].enableScrollWheelZoom();
         this.updateLoadingStatus({ isLoading: true });
+        this.initLocation();
         switch ($scope.options.type) {
           case "DRIVING_SOLUTION":
           case "WALKING_SOLUTION":
           case "TRANSIT_SOLUTION":
-            window["IMap"].centerAndZoom(this.curretPoint, this.zoom);
             initMapContainer(true);
+            window["IMap"].centerAndZoom(this.curretPoint, this.zoom);
+            $scope.initRoute();
             const _start = new BMap.Point(
               $scope.start.point && $scope.start.point.lng,
               $scope.start.point && $scope.start.point.lat
@@ -526,6 +529,7 @@ export default {
             $scope.transit.search(_start, _end);
             break;
           case "BUS_LINE":
+            $scope.initBusline();
             this.directSetBusLine = true;
             const numberMatch = this.busNum.match(/\d+/);
             if (numberMatch) $scope.busline.getBusList(numberMatch[0]);

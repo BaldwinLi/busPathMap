@@ -2,14 +2,15 @@
   <div class="trans-main">
     <!-- speech x-webkit-speech -->
      <tab>
-      <tab-item :selected="routeType.transit" @on-item-click="onRouteTypeClick">公交</tab-item>
-      <tab-item :selected="routeType.driving" @on-item-click="onRouteTypeClick">自驾</tab-item>
-      <tab-item :selected="routeType.walking" @on-item-click="onRouteTypeClick">步行</tab-item>
-    </tab>
-    <tab>
-      <tab-item v-if="true" :selected="showSolutionList" @on-item-click="onItemClick">公交换乘方案列表</tab-item>
-      <tab-item :selected="showMap" @on-item-click="onItemClick">方案路线图</tab-item>
-      <tab-item :selected="showPathResult" @on-item-click="onItemClick">方案结果明细</tab-item>
+      <tab-item :selected="routeType.transit" @on-item-click="onRouteTypeClick">
+        <i class="iconfont icon-gongjiao header-icon-size"></i>
+      </tab-item>
+      <tab-item :selected="routeType.driving" @on-item-click="onRouteTypeClick">
+        <i class="iconfont icon-zijia header-icon-size"></i>
+      </tab-item>
+      <tab-item :selected="routeType.walking" @on-item-click="onRouteTypeClick">
+        <i class="iconfont icon-buxing header-icon-size"></i>
+      </tab-item>
     </tab>
     <cell primary="content" class="search-field" v-show="showMap">
       <div slot="title" class="input-header">
@@ -60,7 +61,34 @@
         <i class="fa fa-exchange reverse-position" aria-hidden="true" @click="reversePosition"></i>
       </div>
     </cell>
-    <map-container
+    <div id="map-container-wrapper">
+      <div v-show="showSolutionList">
+        <card v-for="(item, index) in routeResults" :key="index" @click.native="selectSolution(item)">
+          <div slot="header" class="weui-panel__hd card-header">
+            <span>
+               <div v-for="(item1, index1) in item.viaStopsList" :key="index1" style="float:left; color: #000;">
+                  <i v-if="index1 != 0" class="fa fa-long-arrow-right" aria-hidden="true"></i> {{item1 + ' '}}&nbsp;
+               </div>
+               <div style="float: right; color: #00EE76;">{{item.viaStopsNum||''}} {{item.firstWalkLineDistance?('始发站需步行' + item.firstWalkLineDistance + '米'):''}}</div>
+            </span>
+            <span>
+              <div v-for="(item1, index1) in item.advantages" :class="{
+                'badge-card': true,
+                success: ['时间短', '避免拥堵'].includes(item1.text),
+                warn: item1.text === '步行少',
+                error: item1.text === '换乘少'
+              }" style="margin-right: 1rem" :key="index1">{{item1.text}}
+              </div>
+            </span>
+          </div>
+          <div slot="content" class="card-flex">
+            <div class="vux-1px-r">{{item.duration | secondsFormat}}</div>
+            <div class="vux-1px-r" v-if="item.viaStopsNum">{{item.viaStopsNum}}</div>
+            <div v-if="item.sumWalkLineDistance">步行{{item.sumWalkLineDistance}}米</div>
+          </div>
+        </card>
+      </div>
+      <map-container
       ref="mapContainer"
       :startText="startPosition" 
       :endText="endPosition"
@@ -76,13 +104,19 @@
       @onGetClickPoi="onGetClickPoi"
       @onRouteSearchComplete="routeSearchComplete"
       @onGeolocationComplete="onGeolocationComplete">
-    </map-container>
+      </map-container>
+    </div>
+    <tab bar-position="top">
+        <tab-item :selected="showSolutionList" @on-item-click="onItemClick">公交换乘方案列表</tab-item>
+        <tab-item :selected="showMap" @on-item-click="onItemClick">方案路线图</tab-item>
+        <tab-item :selected="showPathResult" @on-item-click="onItemClick">方案结果明细</tab-item>
+    </tab>
   </div>
 </template>
 
 <script>
 import { isObject, debounce, forEach } from "lodash";
-import { Search, Cell, Divider, Tab, TabItem } from "vux";
+import { Search, Cell, Divider, Tab, TabItem, Card } from "vux";
 import { mapMutations } from "vuex";
 import MapContainer from "@/components/map-container";
 import { commonPluginOptions } from "@/components/map-config";
@@ -121,13 +155,26 @@ export default {
       routeResults: []
     };
   },
+  filters: {
+    milesFormat: function(value) {
+      // value
+      // const kilo = value/1000;
+      // return "¥ " + numberComma(count);
+    },
+    secondsFormat: function(value) {
+      const hours = (value / 3600).toFixed(0);
+      const minus = ((value % 3600) / 60).toFixed(0);
+      return hours + "小时" + minus + "分钟";
+    }
+  },
   components: {
     MapContainer,
     Search,
     Cell,
     Divider,
     Tab,
-    TabItem
+    TabItem,
+    Card
   },
   methods: {
     onSpeechChange(value) {
@@ -196,12 +243,13 @@ export default {
       const durations = [];
       const distances = [];
       const sumWalkLineDistances = [];
-      forEach(event, item => {
+      forEach(event, (item, index) => {
         let sumViaStops = 0,
           firstWalkLineDistance = 0,
           sumWalkLineDistance = 0,
           routesNum;
         const viaStopsList = [];
+        let title = "";
         if (typeof item.getLine !== "undefined") {
           routesNum = item.getNumLines();
           for (let i = 0; i < routesNum; i++) {
@@ -212,7 +260,17 @@ export default {
             sumViaStops += line.getNumViaStops();
             sumViaStops += line.getNumViaStops();
             viaStopsList.push(line.title);
+            // title = title ? (title + ( ' -> ' + line.title)): line.title;
             // for (let j = 0; j < line.getNumViaStops())
+          }
+        } else {
+          switch (this.options.type) {
+            case "DRIVING_SOLUTION":
+              viaStopsList.push("驾车方案" + (index + 1));
+              break;
+            case "WALKING_SOLUTION":
+              viaStopsList.push("步行方案" + (index + 1));
+              break;
           }
         }
         const distance = item.getDistance();
@@ -225,6 +283,7 @@ export default {
           viaStopsNum: sumViaStops && sumViaStops + "站",
           distance,
           duration,
+          // title,
           viaStopsList,
           firstWalkLineDistance,
           sumWalkLineDistance,
@@ -246,9 +305,8 @@ export default {
           });
         e.duration === Math.min.apply(Math, durations) &&
           e.advantages.push({
-            text: this.options.type === "TRANSIT_SOLUTION"
-                ? "时间短"
-                : "避免拥堵",
+            text:
+              this.options.type === "TRANSIT_SOLUTION" ? "时间短" : "避免拥堵",
             policy:
               this.options.type === "TRANSIT_SOLUTION"
                 ? BMAP_TRANSIT_POLICY_LEAST_TIME
@@ -410,6 +468,9 @@ export default {
     },
     selectSolution(solution) {
       this.$refs["mapContainer"].quertRoute(solution);
+      this.showMap = true;
+      this.showSolutionList = false;
+      this.showPathResult = false;
     },
     relocate() {
       if (this.start.point && this.end.point) {
@@ -434,12 +495,17 @@ export default {
     }
     this.updateTitle("换乘方案查询");
     $(".input-header").width($(window).width() * 0.7);
+    $("#map-container-wrapper").height($(window).height() - 88);
   }
 };
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.header-icon-size {
+  font-size: 3rem;
+}
+
 .trans-main {
   font-size: 1.5rem;
 }
@@ -478,5 +544,69 @@ export default {
   z-index: 7;
   left: 7%;
   margin: 1rem auto;
+}
+
+.vux-1px-r {
+  position: relative;
+}
+
+.vux-1px-r:after {
+  content: " ";
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 1px;
+  bottom: 0;
+  border-right: 1px solid #c7c7c7;
+  color: #c7c7c7;
+  -webkit-transform-origin: 100% 0;
+  transform-origin: 100% 0;
+  -webkit-transform: scaleX(0.5);
+  transform: scaleX(0.5);
+}
+
+.card-flex {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: flex;
+  color: #bebebe;
+}
+
+.card-flex > div {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  padding: 10px 0;
+}
+
+.card-header {
+  height: 4rem;
+}
+
+.badge-card {
+  float: left;
+  padding: 2px;
+  border-radius: 5px;
+}
+
+.badge-card.success {
+  background: #00ee76;
+  color: #fff;
+}
+
+.badge-card.warn {
+  background: #ffc125;
+  color: #fff;
+}
+
+.badge-card.error {
+  background: #cd5555;
+  color: #fff;
+}
+
+#map-container-wrapper {
+  overflow-y: scroll;
 }
 </style>
