@@ -18,20 +18,21 @@
           <i slot="label" class="iconfont icon-pointerbig position-label start"></i>
         </x-input> -->
         <search
-        style="z-index: 9;position: relative;"
+        style="z-index: 9"
         placeholder="请输入起点"
         v-model="startPosition"
         @result-click="startResultClick"
         :results="searchResults"
-        position="relative"
+        position="fixed"
         @on-focus="onFocus('start')"
         cancel-text=" "
         @on-submit="startResultClick(0)"
         @on-cancel="onCancel"
         ref="startSearch">
           <i slot="left" class="iconfont icon-pointerbig position-label start"></i>
-          <a slot="right" class="iconfont icon-global_geo geo-setter" style="right: -3rem;" @click="setCurrentGeo"></a>
-          <a slot="right" class="iconfont icon-yuyin geo-setter start-search" 
+          <a slot="right" class="iconfont icon-global_geo geo-setter"
+             style="right: -3rem;" @click="setCurrentGeo"></a>
+          <a slot="right" v-show="showStartYulin" class="iconfont icon-yuyin geo-setter start-search" style="font-size: 2.5rem; margin: 0;"
              v-touch:touchstart="startRecord" v-touch:touchend="stopRecord"></a>
         </search>
         
@@ -41,12 +42,12 @@
           <i slot="label" class="iconfont icon-pointerbig position-label end"></i>
         </x-input> -->
         <search
-        style="position: relative;"
+        style="z-index: 9"
         placeholder="请输入终点"
         v-model="endPosition"
         @result-click="endResultClick"
         :results="searchResults"
-        position="relative"
+        position="fixed"
         @on-focus="onFocus('end')"
         cancel-text=" "
         @on-submit="endResultClick(0)"
@@ -54,6 +55,8 @@
         ref="endSearch">
           <i slot="left" class="iconfont icon-pointerbig position-label end"></i>
           <a slot="right" class="iconfont icon-yuyin geo-setter end-search"
+             style="font-size: 2.5rem; margin: 0;"
+             v-show="showEndYulin"
              v-touch:touchstart="startRecord" v-touch:touchend="stopRecord"></a>
         </search>
       </div>
@@ -71,6 +74,7 @@
                </div>
                <div style="float: right; color: #00EE76;">{{item.viaStopsNum||''}} {{item.firstWalkLineDistance?('始发站需步行' + item.firstWalkLineDistance + '米'):''}}</div>
             </span>
+            <br>
             <span>
               <div v-for="(item1, index1) in item.advantages" :class="{
                 'badge-card': true,
@@ -107,9 +111,9 @@
       </map-container>
     </div>
     <tab bar-position="top">
-        <tab-item :selected="showSolutionList" @on-item-click="onItemClick">公交换乘方案列表</tab-item>
-        <tab-item :selected="showMap" @on-item-click="onItemClick">方案路线图</tab-item>
-        <tab-item :selected="showPathResult" @on-item-click="onItemClick">方案结果明细</tab-item>
+        <tab-item :selected="showSolutionList" @on-item-click="onItemClick">方案</tab-item>
+        <tab-item :selected="showMap" @on-item-click="onItemClick">地图</tab-item>
+        <tab-item :selected="showPathResult" @on-item-click="onItemClick">明细</tab-item>
     </tab>
   </div>
 </template>
@@ -152,6 +156,8 @@ export default {
         driving: false,
         walking: false
       },
+      showStartYulin: false,
+      showEndYulin: false,
       routeResults: []
     };
   },
@@ -212,7 +218,7 @@ export default {
       }
     },
     startResultClick(value) {
-      value = value || this.searchResults[0];
+      value = value || this.searchResults[0] || this.start;
       document.activeElement.blur();
       this.start = value;
       if (value.title !== this.startPosition) {
@@ -225,13 +231,14 @@ export default {
       this.relocate();
     },
     endResultClick(value) {
-      value = value || this.searchResults[0];
+      value = value || this.searchResults[0] || this.start;
       document.activeElement.blur();
       this.end = value;
       if (value.title !== this.endPosition) {
         this.endPosition = value.title;
         this.isNeedToClear = true;
       }
+
       this.cancelSearch(this.$refs.endSearch);
       this.cancelSearch(this.$refs.startSearch);
       this.postionsHistory = storePositionKeyword(value);
@@ -332,6 +339,7 @@ export default {
             setTimeout(() => {
               scope.postionsHistory.length > 0 &&
                 (scope.searchResults = scope.postionsHistory);
+              scope.showStartYulin = true;
             });
           }
           break;
@@ -341,6 +349,7 @@ export default {
             setTimeout(() => {
               scope.postionsHistory.length > 0 &&
                 (scope.searchResults = scope.postionsHistory);
+              scope.showEndYulin = true;
             });
           }
           break;
@@ -357,6 +366,8 @@ export default {
         ref.isFixed = false;
         // ref.$emit("on-cancel");
         scope.searchResults.length > 0 && (scope.searchResults = []);
+        scope.showStartYulin = false;
+        scope.showEndYulin = false;
       });
     },
     reversePosition() {

@@ -6,8 +6,8 @@
     </tab>
     <cell primary="content" class="search-field" v-show="showMap" style="background-color: #fff;">
       <div slot="title" class="input-header">
+      <!-- style="position: relative;" -->
       <search
-          style="position: relative;"
           v-model="busNum"
           position="relative"
           placeholder="请输入公交线路号"
@@ -126,14 +126,14 @@ export default {
     },
     setBusLine(val) {
       val = val || this.searchResults[0];
-      if (val.lineItem) {
+      if (val && val.lineItem) {
         this.fstLine = val;
         storeBusLineKeyword({
           forward: { title: val.title },
           reverse: { title: this.reverseLineList[val.index].title }
         });
       }
-      this.busNum = val.title;
+      val && val.title && (this.busNum = val.title);
       document.activeElement.blur();
       this.cancelSearch();
       this.relocate();
