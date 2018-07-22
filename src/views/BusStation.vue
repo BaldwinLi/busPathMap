@@ -50,7 +50,7 @@
 import { forEach, cloneDeep } from "lodash";
 import { Cell, Search, Tab, TabItem, Flexbox, FlexboxItem } from "vux";
 import { mapMutations } from "vuex";
-import { loadWeChatSdk, scanWxQRCode } from "@/helper/jssdk-loader";
+import { scanWxQRCode } from "@/helper/jssdk-loader";
 import MapContainer from "@/components/map-container";
 import { commonPluginOptions } from "@/components/map-config";
 import { storeBusStationKeyword } from "@/helper/utils";
@@ -164,24 +164,9 @@ export default {
         window.location.pathname}#${this.$route.path}?${params}`;
     },
     loadComplete() {
-      loadWeChatSdk([
-        "startRecord",
-        "stopRecord",
-        "translateVoice",
-        "getLocation"
-      ]).then(
-        success => {
-          success === "SUCCESS" &&
-            this.$refs["mapContainer"].getCurrentPosition();
-        },
-        error => {
-          this.$refs["mapContainer"].getCurrentPosition();
-        }
-      );
+      this.$autoGetCurrentPosition();
     },
     ...mapMutations(["updateTitle"])
-  },
-  beforeCreate() {
   },
   mounted() {
     if (!$.isEmptyObject(this.$route.query)) {
@@ -189,6 +174,10 @@ export default {
       this.searchWord = _query.searchWord;
       this.busLineNum = _query.busLineNum;
       this.isHref = true;
+    }
+    if (window["IMap"]) {
+      window["initMapContainer"].call(this.$refs["mapContainer"], true);
+      this.$autoGetCurrentPosition();
     }
     this.updateTitle("公交站点查询");
   }

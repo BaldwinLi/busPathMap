@@ -48,7 +48,6 @@ import { forEach, cloneDeep, trim } from "lodash";
 import { Cell, Search, Tab, TabItem } from "vux";
 import { mapMutations } from "vuex";
 import MapContainer from "@/components/map-container";
-import { loadWeChatSdk } from "@/helper/jssdk-loader";
 import { commonPluginOptions } from "@/components/map-config";
 import { storeBusLineKeyword } from "@/helper/utils";
 import { setTimeout } from "timers";
@@ -101,20 +100,7 @@ export default {
       this.searchResults = this.forwardLineList;
     },
     loadComplete(event) {
-      loadWeChatSdk([
-        "startRecord",
-        "stopRecord",
-        "translateVoice",
-        "getLocation"
-      ]).then(
-        success => {
-          success === "SUCCESS" &&
-            this.$refs["mapContainer"].getCurrentPosition();
-        },
-        error => {
-          this.$refs["mapContainer"].getCurrentPosition();
-        }
-      );
+      this.$autoGetCurrentPosition();
     },
     onGeolocationComplete(event) {
       if (this.$route.query["busNum"]) {
@@ -171,7 +157,10 @@ export default {
           lineText = cacheText[1] || "";
           // this.busNum = this.busNum.replace(
           //   _regExp,
-          this.busNum = `${cacheText[0]}(${lineText.split("-").reverse().join("-")})`;
+          this.busNum = `${cacheText[0]}(${lineText
+            .split("-")
+            .reverse()
+            .join("-")})`;
           // );
         } else {
           this.busNum = (isForward
@@ -215,8 +204,11 @@ export default {
     },
     ...mapMutations(["updateTitle"])
   },
-  beforeCreate() {},
   mounted() {
+    if (window["IMap"]) {
+      window["initMapContainer"].call(this.$refs["mapContainer"], true);
+      this.$autoGetCurrentPosition();
+    }
     this.updateTitle("公交线路查询");
   }
 };

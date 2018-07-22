@@ -14,6 +14,7 @@ import { coordinatesOffsetList } from "./map-config";
 let $scope;
 window["initMapContainer"] = unTriggerLoadComplete => {
   // forEach;
+  !$scope && ($scope = this);
   window["IMap"] = new BMap.Map("map-container");
   $scope.geoc = new BMap.Geocoder();
   // window["IMap"].centerAndZoom(new BMap.Point(121.45, 39.02), 11);

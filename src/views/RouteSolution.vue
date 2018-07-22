@@ -125,7 +125,7 @@ import { mapMutations } from "vuex";
 import MapContainer from "@/components/map-container";
 import { commonPluginOptions } from "@/components/map-config";
 import { setTimeout } from "timers";
-import { loadWeChatSdk, wxStopRecordAndTranslate } from "@/helper/jssdk-loader";
+import { wxStopRecordAndTranslate } from "@/helper/jssdk-loader";
 import { storePositionKeyword } from "@/helper/utils";
 // let $scope;
 export default {
@@ -187,20 +187,7 @@ export default {
       alert(value);
     },
     loadComplete(event) {
-      loadWeChatSdk([
-        "startRecord",
-        "stopRecord",
-        "translateVoice",
-        "getLocation"
-      ]).then(
-        success => {
-          success === "SUCCESS" &&
-            this.$refs["mapContainer"].getCurrentPosition();
-        },
-        error => {
-          this.$refs["mapContainer"].getCurrentPosition();
-        }
-      );
+      this.$autoGetCurrentPosition();
     },
     onPoiChange(result) {
       if (this.isNeedToClear) {
@@ -499,7 +486,6 @@ export default {
     },
     ...mapMutations(["updateTitle"])
   },
-  beforeCreate() {},
   mounted() {
     if (!$.isEmptyObject(this.$route.query)) {
       this._query = this.$route.query;
@@ -507,6 +493,10 @@ export default {
     this.updateTitle("换乘方案查询");
     $(".input-header").width($(window).width() * 0.7);
     $("#map-container-wrapper").height($(window).height() - 88);
+    if (window["IMap"]) {
+      window["initMapContainer"].call(this.$refs["mapContainer"], true);
+      this.$autoGetCurrentPosition();
+    }
   }
 };
 </script>
