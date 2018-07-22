@@ -7,7 +7,7 @@ import {
 const $Timeout = (reject) => {
   let overtime = 0;
   const timeout = setInterval(() => {
-    if (overtime === 2) {
+    if (overtime === 3) {
       clearInterval(timeout);
       reject('timeout');
     } else overtime++;
@@ -20,7 +20,7 @@ export const loadWeChatSdk = (jsApiList) => {
 
   return new Promise((resolve, reject) => {
     const params = `url=${window.location.origin + window.location.pathname}`
-    Vue.http.post(`${store.getters.appContextPath}v1.0/h5/getConfig`, params).then(result => {
+    Vue.http.post(`${store.getters.appContextPath}h5/getConfig`, params).then(result => {
       const _data = result.data.responseBody.result;
       Vue.wechat.config({
         debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。

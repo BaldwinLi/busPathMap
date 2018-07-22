@@ -19,7 +19,7 @@
           :results="searchResults"
           @on-submit="setBusPoi(0)"
           ref="search">
-          <a slot="left" style="width: 10rem;" @click="scanQRCode">站点扫一扫 <i class="iconfont icon-scan"></i></a>
+          <a slot="left" style="width: 10rem; font-size: 1.3rem; line-height: 2.7rem;" @click="scanQRCode">站点扫一扫 <i style="font-size: 1.4rem;" class="iconfont icon-scan"></i></a>
           <a slot="right" v-show="isCanceled" class="iconfont icon-global_geo geo-setter" @click="setCurrentGeo"></a>
       <!-- cancel-text="搜索" -->
       <!-- <i slot="left" v-if="!isShowList" @click="hideList" class="fa fa-angle-left" style="font-size: 2.5rem; margin-right: 1rem;" aria-hidden="true"></i> -->

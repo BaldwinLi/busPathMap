@@ -356,7 +356,7 @@ export default {
         );
         result.name = "";
         window["IMap"].centerAndZoom(center, this.zoom);
-        window["IMap"].addControl(new BMap.NavigationControl());
+        // window["IMap"].addControl(new BMap.NavigationControl());
       } else {
         center = result.point || result.center;
         // if (result.level === 1) {

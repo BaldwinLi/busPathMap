@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { forEach, cloneDeep } from "lodash";
+import { forEach, cloneDeep, trim } from "lodash";
 import { Cell, Search, Tab, TabItem } from "vux";
 import { mapMutations } from "vuex";
 import MapContainer from "@/components/map-container";
@@ -164,10 +164,15 @@ export default {
           historyReverseBusline.length === 0 ||
           historyForwardBusline.length === 0
         ) {
-          const _regExp = new RegExp('(?<=\\().*?(?=\\))')
-          const lineMatch = this.busNum.match(_regExp);
-          lineText = lineMatch && lineMatch[0];
-          this.busNum = this.busNum.replace(_regExp, lineText.split('-').reverse().join('-'));
+          // const _regExp = new RegExp('(?<=\\().*?(?=\\))')
+          // const lineMatch = this.busNum.match(_regExp);
+          // lineText = lineMatch && lineMatch[0];
+          const cacheText = trim(this.busNum, ")").split("(");
+          lineText = cacheText[1] || "";
+          // this.busNum = this.busNum.replace(
+          //   _regExp,
+          this.busNum = `${cacheText[0]}(${lineText.split("-").reverse().join("-")})`;
+          // );
         } else {
           this.busNum = (isForward
             ? historyReverseBusline[index]

@@ -339,9 +339,9 @@ export default {
             setTimeout(() => {
               scope.postionsHistory.length > 0 &&
                 (scope.searchResults = scope.postionsHistory);
-              scope.showStartYulin = true;
             });
           }
+          this.showStartYulin = true;
           break;
         case "end":
           this.cancelSearch(this.$refs.startSearch);
@@ -349,9 +349,9 @@ export default {
             setTimeout(() => {
               scope.postionsHistory.length > 0 &&
                 (scope.searchResults = scope.postionsHistory);
-              scope.showEndYulin = true;
             });
           }
+          this.showEndYulin = true;
           break;
       }
     },
@@ -366,9 +366,9 @@ export default {
         ref.isFixed = false;
         // ref.$emit("on-cancel");
         scope.searchResults.length > 0 && (scope.searchResults = []);
-        scope.showStartYulin = false;
-        scope.showEndYulin = false;
       });
+      scope.showStartYulin = false;
+      scope.showEndYulin = false;
     },
     reversePosition() {
       const _startPostion = this.startPosition;
