@@ -25,7 +25,7 @@ import {
 import vueTouch from 'vue-plugin-touch';
 Vue.use(ToastPlugin)
 Vue.use(vueTouch);
-Vue.use(WechatPlugin)
+Vue.use(WechatPlugin);
 Vue.wechat['jssdkIsReady'] = false;
 // import { initKeyList } from './initKeyList';
 

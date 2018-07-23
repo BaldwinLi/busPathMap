@@ -6,7 +6,7 @@ Vue.use(Vuex);
 const proxyedHostNames = [
   'localhost',
   '127.0.0.1',
-  '192.168.1.101'
+  '10.247.237.90'
 ]
 
 export default new Vuex.Store({ // 名字自己定义
@@ -40,7 +40,7 @@ export default new Vuex.Store({ // 名字自己定义
     rootPath: () => (window.location.origin + window.location.pathname),
     isLocal: () => proxyedHostNames.includes(window.location.hostname),
     appContextPath: () => (proxyedHostNames.includes(window.location.hostname) ?
-      `${window.location.origin}/dev_api/` : `${window.location.origin}/`),
+      `${window.location.origin}/dev_api/` : `${window.location.origin}/busQInterface/v1.0/`),
     agentType: () => {
       if (/(iPhone|iPad|iPod|iOS)/i.test(navigator.userAgent)) {
         return 'IOS';

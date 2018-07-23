@@ -14,7 +14,6 @@ import { coordinatesOffsetList } from "./map-config";
 let $scope;
 window["initMapContainer"] = unTriggerLoadComplete => {
   // forEach;
-  !$scope && ($scope = this);
   window["IMap"] = new BMap.Map("map-container");
   $scope.geoc = new BMap.Geocoder();
   // window["IMap"].centerAndZoom(new BMap.Point(121.45, 39.02), 11);
@@ -56,7 +55,7 @@ export default {
   data() {
     return {
       isCityPosition: false,
-      curretPoint: {},
+      currentPoint: {},
       busline: Object,
       transit: Object,
       geoc: Object,
@@ -356,7 +355,6 @@ export default {
           result.latitude
         );
         result.name = "";
-        window["IMap"].centerAndZoom(center, this.zoom);
         // window["IMap"].addControl(new BMap.NavigationControl());
       } else {
         center = result.point || result.center;
@@ -375,6 +373,18 @@ export default {
       //坐标转换完之后的回调函数
       const translateCallback = data => {
         if (data.status === 0) {
+          // 创建标注
+          const finalCallback = res => {
+            res &&
+              (result.name =
+                (res.surroundingPois[0] && res.surroundingPois[0].title) ||
+                res.business.split(",")[0]);
+            this.$emit("onGeolocationComplete", result);
+            this.updateLoadingStatus({ isLoading: false });
+          };
+          $scope.currentPoint = result.point = result.center = center =
+            // data.points[0];
+            new BMap.Point(126.63, 45.75);
           const icon = new BMap.Icon(
             "http://api0.map.bdimg.com/images/stop_icon.png",
             new BMap.Size(15, 15),
@@ -384,57 +394,38 @@ export default {
             }
           );
           icon.imageSize = new BMap.Size(15, 15);
-          const marker = new BMap.Marker(data.points[0], {
+          const marker = new BMap.Marker($scope.currentPoint, {
             icon
-          }); // 创建标注
-          const finalCallback = res => {
-            res &&
-              (result.name =
-                (res.surroundingPois[0] && res.surroundingPois[0].title) || "");
-            $scope.curretPoint = center;
-            $scope.initBusline();
-            $scope.initRoute();
-            $scope.initLocation();
-            switch (this.options.type) {
-              case "BUS_STATION":
-                this.start.point = center;
-                this.location.searchNearby(result.name, this.start.point);
-            }
-            this.$emit("onGeolocationComplete", result);
-            this.updateLoadingStatus({ isLoading: false });
-          };
-          if (!result.name) {
-            // new BMap.LocalSearch(data.points[0], {
-            //   onSearchComplete: finalCallback
-            // }).searchNearby(
-            //   "公交站",
-            //   new BMap.Point(
-            //     // 121.618726,
-            //     // 38.919333
-            //     data.points[0].lng,
-            //     data.points[0].lat
-            //   ),
-            //   1000
-            // );
-            $scope.geoc.getLocation(data.points[0], finalCallback);
-          } else {
-            // $scope.geoc.getLocation(data.points[0], finalCallback);
-            finalCallback();
-          }
-          // this.location.searchNearby("", this.start.point);
-          window["IMap"].centerAndZoom(data.points[0], this.zoom);
+          });
+          window["IMap"].centerAndZoom($scope.currentPoint, this.zoom);
+          // window["IMap"].centerAndZoom(data.points[0], this.zoom);
           window["IMap"].addOverlay(marker);
           window["IMap"].addOverlay(
-            new BMap.Circle(data.points[0], 1000, {
+            new BMap.Circle($scope.currentPoint, 1000, {
               fillColor: "#0099ff",
               strokeWeight: 1,
               fillOpacity: 0.3,
               strokeOpacity: 0.3
             })
           );
-          window["IMap"].panTo(data.points[0]);
+          window["IMap"].panTo($scope.currentPoint);
           window["IMap"].enableScrollWheelZoom();
+          $scope.initBusline();
+          $scope.initRoute();
+          $scope.initLocation();
+          switch (this.options.type) {
+            case "BUS_STATION":
+              this.start.point = $scope.currentPoint;
+              this.location.searchNearby(result.name, this.start.point);
+          }
+          if (!result.name) {
+            $scope.geoc.getLocation($scope.currentPoint, finalCallback);
+          } else {
+            // $scope.geoc.getLocation(data.points[0], finalCallback);
+            finalCallback();
+          }
         }
+        // this.location.searchNearby("", this.start.point);
       };
       if (["gcj02", "wgs84"].includes(result.type)) {
         setTimeout(() => {
@@ -508,7 +499,7 @@ export default {
       setTimeout(() => {
         // $scope.initLocation();
         // window["IMap"].addControl(new BMap.NavigationControl());
-        // window["IMap"].panTo(this.curretPoint);
+        // window["IMap"].panTo(this.currentPoint);
         // window["IMap"].enableScrollWheelZoom();
         this.updateLoadingStatus({ isLoading: true });
         this.initLocation();
@@ -517,7 +508,7 @@ export default {
           case "WALKING_SOLUTION":
           case "TRANSIT_SOLUTION":
             initMapContainer(true);
-            window["IMap"].centerAndZoom(this.curretPoint, this.zoom);
+            window["IMap"].centerAndZoom(this.currentPoint, this.zoom);
             $scope.initRoute();
             const _start = new BMap.Point(
               $scope.start.point && $scope.start.point.lng,
@@ -567,7 +558,7 @@ export default {
           break;
       }
       routeType &&
-        ($scope.transit = new BMap[routeType](this.curretPoint, {
+        ($scope.transit = new BMap[routeType](this.currentPoint, {
           renderOptions: {
             map: IMap,
             panel: "path-result"
@@ -579,7 +570,7 @@ export default {
         }));
     },
     initBusline() {
-      $scope.busline = new BMap.BusLineSearch(this.curretPoint, {
+      $scope.busline = new BMap.BusLineSearch(this.currentPoint, {
         renderOptions: {
           map: IMap,
           panel: "path-result",
@@ -592,7 +583,7 @@ export default {
       });
     },
     initLocation() {
-      $scope.location = new BMap.LocalSearch(this.curretPoint, {
+      $scope.location = new BMap.LocalSearch(this.currentPoint, {
         renderOptions:
           ($scope.options.type === "BUS_STATION" && {
             map: IMap

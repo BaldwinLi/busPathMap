@@ -50,7 +50,7 @@
 import { forEach, cloneDeep } from "lodash";
 import { Cell, Search, Tab, TabItem, Flexbox, FlexboxItem } from "vux";
 import { mapMutations } from "vuex";
-import { scanWxQRCode } from "@/helper/jssdk-loader";
+import { loadWeChatSdk, scanWxQRCode } from "@/helper/jssdk-loader";
 import MapContainer from "@/components/map-container";
 import { commonPluginOptions } from "@/components/map-config";
 import { storeBusStationKeyword } from "@/helper/utils";
@@ -168,6 +168,7 @@ export default {
     },
     ...mapMutations(["updateTitle"])
   },
+  beforeCreate() {},
   mounted() {
     if (!$.isEmptyObject(this.$route.query)) {
       const _query = this.$route.query;
@@ -175,11 +176,8 @@ export default {
       this.busLineNum = _query.busLineNum;
       this.isHref = true;
     }
-    if (window["IMap"]) {
-      window["initMapContainer"].call(this.$refs["mapContainer"], true);
-      this.$autoGetCurrentPosition();
-    }
     this.updateTitle("公交站点查询");
+    window["IMap"] && this.$autoGetCurrentPosition();
   }
 };
 </script>

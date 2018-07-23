@@ -47,7 +47,6 @@ export const loadWeChatSdk = (jsApiList) => {
     $Timeout(reject);
     Vue.wechat.ready(() => {
       resolve('SUCCESS')
-      Vue.wechat['jssdkIsReady'] = true;
       // config信息验证后会执行ready方法，所有接口调用都必须在config接口获得结果之后，config是一个客户端的异步操作，所以如果需要在页面加载时就调用相关接口，则须把相关接口放在ready函数中调用来确保正确执行。对于用户触发时才调用的接口，则可以直接调用，不需要放在ready函数中。
     });
     Vue.wechat.error((res) => {
@@ -95,6 +94,7 @@ export const wxStopRecordAndTranslate = () => {
           isShowProgressTips: 1, // 默认为1，显示进度提示
           success: function (res) {
             resolve(res.translateResult); // 语音识别的结果
+            Vue.wechat['jssdkIsReady'] = true;
           },
           fail: (err) => {
             reject(err);
@@ -108,18 +108,19 @@ export const wxStopRecordAndTranslate = () => {
   });
 }
 
-Vue.prototype.$autoGetCurrentPosition = function() {
-  // debugger
+Vue.prototype.$autoGetCurrentPosition = function () {
   const scope = this;
-  Vue.wechat['jssdkIsReady'] ?
-    this.$refs["mapContainer"].getCurrentPosition() :
-    loadWeChatSdk().then(
-      success => {
-        success === "SUCCESS" &&
+  scope.$refs["mapContainer"].updateLoadingStatus({
+    isLoading: true
+  });
+  initMapContainer.call(this.$refs["mapContainer"], true);
+  Vue.wechat['jssdkIsReady'] ? scope.$refs["mapContainer"].getCurrentPosition() : (loadWeChatSdk().then(
+    success => {
+      success === "SUCCESS" &&
         scope.$refs["mapContainer"].getCurrentPosition();
-      },
-      error => {
-        scope.$refs["mapContainer"].getCurrentPosition();
-      }
-    );
+    },
+    error => {
+      scope.$refs["mapContainer"].getCurrentPosition();
+    }
+  ));
 }

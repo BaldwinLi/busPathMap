@@ -125,7 +125,7 @@ import { mapMutations } from "vuex";
 import MapContainer from "@/components/map-container";
 import { commonPluginOptions } from "@/components/map-config";
 import { setTimeout } from "timers";
-import { wxStopRecordAndTranslate } from "@/helper/jssdk-loader";
+import { loadWeChatSdk, wxStopRecordAndTranslate } from "@/helper/jssdk-loader";
 import { storePositionKeyword } from "@/helper/utils";
 // let $scope;
 export default {
@@ -423,7 +423,7 @@ export default {
         this.startPosition = result.name;
         this.cancelSearch(this.$refs.startSearch);
         this.postionsHistory = storePositionKeyword(this.start);
-        this.isNeedToClear = true;
+        // this.isNeedToClear = true;
       } else {
         // setTimeout(() => {
         this.startPosition = this._query.startPosition;
@@ -486,6 +486,7 @@ export default {
     },
     ...mapMutations(["updateTitle"])
   },
+  beforeCreate() {},
   mounted() {
     if (!$.isEmptyObject(this.$route.query)) {
       this._query = this.$route.query;
@@ -493,10 +494,7 @@ export default {
     this.updateTitle("换乘方案查询");
     $(".input-header").width($(window).width() * 0.7);
     $("#map-container-wrapper").height($(window).height() - 88);
-    if (window["IMap"]) {
-      window["initMapContainer"].call(this.$refs["mapContainer"], true);
-      this.$autoGetCurrentPosition();
-    }
+    window["IMap"] && this.$autoGetCurrentPosition();
   }
 };
 </script>
