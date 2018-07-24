@@ -7,7 +7,7 @@ import {
 const $Timeout = (reject) => {
   let overtime = 0;
   const timeout = setInterval(() => {
-    if (overtime === 3) {
+    if (overtime === 1) {
       clearInterval(timeout);
       reject('timeout');
     } else overtime++;
@@ -113,7 +113,7 @@ Vue.prototype.$autoGetCurrentPosition = function () {
   scope.$refs["mapContainer"].updateLoadingStatus({
     isLoading: true
   });
-  initMapContainer.call(this.$refs["mapContainer"], true);
+  initMapContainer(true);
   Vue.wechat['jssdkIsReady'] ? scope.$refs["mapContainer"].getCurrentPosition() : (loadWeChatSdk().then(
     success => {
       success === "SUCCESS" &&
