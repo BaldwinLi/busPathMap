@@ -113,7 +113,7 @@
     <tab bar-position="top">
         <tab-item :selected="showSolutionList" @on-item-click="onItemClick">方案</tab-item>
         <tab-item :selected="showMap" @on-item-click="onItemClick">地图</tab-item>
-        <tab-item :selected="showPathResult" @on-item-click="onItemClick">明细</tab-item>
+        <tab-item :selected="showPathResult" @on-item-click="onItemClick">详情</tab-item>
     </tab>
   </div>
 </template>
@@ -466,9 +466,9 @@ export default {
     },
     selectSolution(solution) {
       this.$refs["mapContainer"].quertRoute(solution);
-      this.showMap = true;
+      this.showMap = false;
       this.showSolutionList = false;
-      this.showPathResult = false;
+      this.showPathResult = true;
     },
     relocate() {
       if (this.start.point && this.end.point) {

@@ -1,24 +1,29 @@
 <template>
   <div class="home-content">
     <div ref="mapContainer" v-show="showMap" id="map-container"></div>
-    <div ref="pathResult" v-show="showPathResult" id="path-result"></div>
+    <div ref="pathResult" v-show="showPathResult && hasDetailHtml" id="path-result">
+    </div>
+    <divider v-show="!hasDetailHtml" style="color: #999; font-size: 1.4rem;">
+        暂无路线详情
+      </divider>
   </div>
 </template>
 
 <script>
 // import { TRANSIT_POLICY } from './map-config.js'
-import { forEach, debounce } from "lodash";
+import { forEach, debounce, startsWith } from "lodash";
 import { getWxLocation } from "@/helper/jssdk-loader";
-import { mapMutations } from "vuex";
+import { mapMutations, mapGetters } from "vuex";
 import {
   coordinatesOffsetList,
   getCurrentPositionComplete,
   refreshMap,
   initRoute,
   initBusline,
-  initLocation
+  initLocation,
+  judgeHasDetail
 } from "./map-config";
-import { mapGetters } from "vuex";
+import { Divider } from "vux";
 import { setTimeout } from "timers";
 
 export default {
@@ -34,8 +39,13 @@ export default {
       busPoi: Object,
       plugins: [],
       poiList: [],
-      directSetBusLine: false
+      directSetBusLine: false,
+      viaStopsStr: "",
+      hasDetailHtml: true
     };
+  },
+  components: {
+    Divider
   },
   props: {
     height: Number,
@@ -181,7 +191,11 @@ export default {
         this.refreshMap();
       }
     },
-    showPathResult(val) {},
+    showPathResult(val) {
+      if (val) {
+        this.refreshMap();
+      }
+    },
     options(option) {
       initMapContainer(true);
       this.refreshMap();
@@ -189,7 +203,7 @@ export default {
   },
   methods: {
     onLocalSearchComplete(result) {
-      // debugger;
+      this.judgeHasDetail();
       if (result) {
         this.poiList.length = 0;
         for (let i = 0; i < result.getCurrentNumPois(); i++) {
@@ -217,6 +231,7 @@ export default {
       this.updateLoadingStatus({ isLoading: false });
     },
     onBusLineSearchComplete(result) {
+      this.judgeHasDetail();
       // debugger;
       if (result) {
         if (this.directSetBusLine) {
@@ -235,6 +250,7 @@ export default {
       }
     },
     onRouteSearchComplete(results) {
+      this.judgeHasDetail();
       // debugger;
       if (results && !$.isEmptyObject(results)) {
         const routeResults = [];
@@ -260,6 +276,30 @@ export default {
         case "BUS_STATION":
           forEach($(html).find("li"), elem => {
             if (elem.innerText.indexOf("公交车站") === -1) $(elem).hide();
+          });
+          break;
+        case "TRANSIT_SOLUTION":
+          forEach($(html).find("tr.tranroute-plan-list"), (elem, i) => {
+            if (this.viaStopsStr) {
+              !startsWith(elem.innerText, this.viaStopsStr)
+                ? $(elem).hide()
+                : setTimeout(() => {
+                    $(elem).addClass("expand");
+                    $(elem)
+                      .find("div.trans_plan_desc")
+                      .show();
+                  });
+            }
+            //  else {
+            //   i === 0
+            //     ? setTimeout(() => {
+            //         $(elem).addClass("expand");
+            //         $(elem)
+            //           .find("div.trans_plan_desc")
+            //           .show();
+            //       })
+            //     : $(elem).hide();
+            // }
           });
           break;
       }
@@ -319,6 +359,7 @@ export default {
       });
     },
     onGetBusLineComplete(busLine) {
+      this.judgeHasDetail();
       this.$emit("onGetBusLineComplete", busLine);
       this.updateLoadingStatus({ isLoading: false });
     },
@@ -357,8 +398,10 @@ export default {
     initLocation,
     quertRoute(solution) {
       this.initRoute(solution);
+      this.viaStopsStr = solution.viaStopsList.join(" → ");
       this.transit.search(this.start.point, this.end.point);
     },
+    judgeHasDetail,
     ...mapMutations(["updateLoadingStatus"])
   },
   beforeCreate() {},
@@ -388,7 +431,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 #map-container {
   overflow: hidden;
   position: relative;
@@ -398,6 +441,42 @@ export default {
   text-align: left;
   /* height: 450px; */
 }
+
+.tranroute-plan-list.expand .trans-title {
+  border-bottom: 1px solid #e4e6e7;
+  background-color: #ebf1fb;
+}
+
+.tranroute-plan-list.expand .trans-title > p {
+  font: 25px arial, sans-serif !important;
+}
+
+.trans-plan-content {
+  font: 18px arial, sans-serif;
+}
+
+.trans_plan_desc > div > div {
+  font: 18px arial, sans-serif;
+}
+.trans_plan_desc > div > div > div {
+  /* border-bottom: 1px solid #bebebe; */
+}
+
+.navtrans-bus-desc {
+  line-height: 30px !important;
+  margin-left: 20px;
+  /* border-bottom: 1px solid #bebebe; */
+}
+
+/* .trans_plan_desc::before {
+  position: absolute;
+  content: "";
+  height: 100%;
+  width: 2px;
+  left: 15px;
+  top: 0;
+  background-color: #BEBEBE;
+} */
 </style>
 
 //启用数据库  

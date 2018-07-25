@@ -285,3 +285,10 @@ export const initLocation = function () {
     onSearchComplete: $scope.onLocalSearchComplete
   });
 };
+
+export const judgeHasDetail = function() {
+  $scope.hasDetailHtml = true;
+  setTimeout(() => {
+    $($scope.$refs['pathResult']).children('*').length === 0 && ($scope.hasDetailHtml = false);
+  });
+}
