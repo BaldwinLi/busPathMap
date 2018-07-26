@@ -458,9 +458,9 @@ export default {
 .trans_plan_desc > div > div {
   font: 18px arial, sans-serif;
 }
-.trans_plan_desc > div > div > div {
-  /* border-bottom: 1px solid #bebebe; */
-}
+/* .trans_plan_desc > div > div > div {
+  border-bottom: 1px solid #bebebe;
+} */
 
 .navtrans-bus-desc {
   line-height: 30px !important;

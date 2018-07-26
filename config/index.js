@@ -12,7 +12,7 @@ module.exports = {
     assetsPublicPath: '/',
     proxyTable: {
       '/dev_api': {
-        target: 'http://47.92.104.110/busQInterface/v1.0',
+        target: 'http://47.92.104.110/busQInterface/v1.0/h5',
         // target: 'http://10.17.225.132:8080/Form_002_Define',
         changeOrigin: true,
         pathRewrite: {

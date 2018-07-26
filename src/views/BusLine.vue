@@ -34,7 +34,7 @@
       :pluginOptions="commonPluginOptions"
       :height="-43"
       :showMap="showMap"
-      :showPathResult="showPathResult"
+      showPathResult="false"
       @onLoadComplete="loadComplete"
       @onBusLineSearchComplete="onBusLineSearchComplete"
       @onGetBusLineComplete="onGetBusLineComplete"
@@ -45,7 +45,7 @@
 
 <script>
 import { forEach, cloneDeep, trim } from "lodash";
-import { Cell, Search, Tab, TabItem } from "vux";
+import { Cell, Search, Tab, TabItem, Card, Timeline } from "vux";
 import { mapMutations } from "vuex";
 import MapContainer from "@/components/map-container";
 import { loadWeChatSdk } from "@/helper/jssdk-loader";
@@ -60,7 +60,9 @@ export default {
     Cell,
     MapContainer,
     Tab,
-    TabItem
+    TabItem,
+    Card,
+    Timeline
   },
   data() {
     return {
@@ -76,7 +78,8 @@ export default {
       searchResults: cloneDeep(historyForwardBusline),
       forwardLineList: cloneDeep(historyForwardBusline),
       reverseLineList: cloneDeep(historyReverseBusline),
-      fstLine: {}
+      fstLine: {},
+      buslineDetail: {}
     };
   },
   methods: {
@@ -108,8 +111,25 @@ export default {
         this.busNum = this.$route.query["busNum"];
       }
     },
-    onGetBusLineComplete(busline) {
-      this.busNum = busline.name;
+    onGetBusLineComplete() {
+      if (busline) {
+        const stations = [];
+        for (let i = 0; i < busline.getNumBusStations; i++) {
+          const station = busline.getBusStation(i);
+          stations.push({
+            name: station.name,
+            position: station.position
+          });
+        }
+        this.buslineDetail = {
+          name: busline.name,
+          company: busline.company,
+          startTime: busline.startTime,
+          endTime: busline.endTime,
+          stations
+        };
+        this.busNum = busline.name;
+      }
     },
     setBusLine(val) {
       val = val || this.searchResults[0];
@@ -158,7 +178,10 @@ export default {
           lineText = cacheText[1] || "";
           // this.busNum = this.busNum.replace(
           //   _regExp,
-          this.busNum = `${cacheText[0]}(${lineText.split("-").reverse().join("-")})`;
+          this.busNum = `${cacheText[0]}(${lineText
+            .split("-")
+            .reverse()
+            .join("-")})`;
           // );
         } else {
           this.busNum = (isForward
