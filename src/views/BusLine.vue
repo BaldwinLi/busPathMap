@@ -47,9 +47,16 @@
       <div slot="content" class="card-flex">
         <div>
           <busline :color="'#BEBEBE'">
-            <busline-item v-for="(item, index) in buslineDetail.stations" :key="index">
-				      <h4 class="recent"></h4>
+            <busline-item v-for="(item, index) in buslineDetail.stations" :key="index" :stopNum="index" :onTheRoute="item.onTheRoute"
+            @click.native="selectBusPathStation(item, index)">
               <p class="busline-time">{{item.name}}</p>
+              <x-button mini type="primary" 
+              class="busline-item-button" 
+              :plain="item.reminder" 
+              v-show="item.selected || item.reminder" 
+              @click.native="setReminder(item, index)">
+                {{item.reminder ? "已设提醒" : "设置提醒"}}
+              </x-button>
 			      </busline-item>
           </busline>
         </div>
@@ -59,8 +66,8 @@
 </template>
 
 <script>
-import { forEach, cloneDeep, trim } from "lodash";
-import { Cell, Search, Tab, TabItem, Card } from "vux";
+import { forEach, cloneDeep, trim, map } from "lodash";
+import { Cell, Search, Tab, TabItem, Card, XButton } from "vux";
 import { mapMutations } from "vuex";
 import MapContainer from "@/components/map-container";
 import Busline from "@/components/busline/busline";
@@ -80,7 +87,8 @@ export default {
     TabItem,
     Card,
     Busline,
-    BuslineItem
+    BuslineItem,
+    XButton
   },
   data() {
     return {
@@ -134,11 +142,17 @@ export default {
         const stations = [];
         for (let i = 0; i < busline.getNumBusStations(); i++) {
           const station = busline.getBusStation(i);
+          let onTheRoute;
+          if (i === 5) {
+            onTheRoute = "#00FF00";
+          }
           stations.push({
+            onTheRoute,
             name: station.name,
             position: station.position
           });
         }
+        // stations.$set(0, { childMsg: 'Changed!'});
         this.buslineDetail = {
           name: busline.name,
           company: busline.company,
@@ -240,6 +254,16 @@ export default {
       window.location.href = `${window.location.origin +
         window.location.pathname}#${this.$route.path}?busNum=${this.busNum}`;
     },
+    selectBusPathStation(item, index) {
+      this.buslineDetail.stations = map(this.buslineDetail.stations, (e, i) => {
+        e.selected = index === i;
+        return e;
+      });
+    },
+    setReminder (item, index) {
+      item.reminder = !item.reminder;
+      this.$set(this.buslineDetail.stations, index, item);
+    },
     ...mapMutations(["updateTitle"])
   },
   beforeCreate() {},
@@ -275,5 +299,13 @@ export default {
 .busline-time {
   font-size: 2rem;
   margin-left: 2rem;
+}
+
+.busline-item-button {
+  position: absolute;
+  width: 90px;
+  height: 30px;
+  top: 1.5rem;
+  right: 1rem;
 }
 </style>

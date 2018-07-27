@@ -2,8 +2,11 @@
 	<li class="vux-busline-item">
 		<div :class="['vux-busline-item-color', {'vux-busline-item-head': !isSelect,'vux-busline-item-head-first': isSelect }]" :style="headStyle">
 			<icon v-show="isSelect && $parent.isShowIcon" type="success_no_circle" class="vux-busline-item-checked"></icon>
-		</div>
-		<div class="vux-busline-item-tail" :style="tailStyle"></div>
+            <i v-show="!isSelect" class="vux-busline-item-text">{{stopNum}}</i>
+        </div>
+		<div class="vux-busline-item-tail" :style="tailStyle">
+            <i v-show="!!onTheRoute" class="vux-busline-item-onroute iconfont icon-gongjiao"></i>
+        </div>
 		<div class="vux-busline-item-content">
 			<slot></slot>
 		</div>
@@ -24,7 +27,13 @@ export default {
   },
   props: {
     color: String,
-    isSelect: false
+    isSelect: Boolean,
+    iconType: {
+        type: String,
+        default: 'success_no_circle'
+    },
+    stopNum: Number,
+    onTheRoute: String
   },
   mounted() {
     this.$parent.setChildProps();
@@ -42,8 +51,8 @@ export default {
   computed: {
     tailStyle() {
       return this.isLast
-        ? { display: "none", backgroundColor: this.$parent.color }
-        : { display: "block", backgroundColor: this.$parent.color };
+        ? { display: "none", backgroundColor: this.onTheRoute || this.$parent.color }
+        : { display: "block", backgroundColor: this.onTheRoute || this.$parent.color };
     }
   }
 };
