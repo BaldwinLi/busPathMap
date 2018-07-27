@@ -167,7 +167,7 @@ export default {
           case "BUS_STATION":
             // var marker = new BMap.Marker(_start); // 创建标注
             this.location.searchNearby(
-              $scope.start.title.split("-")[0],
+              $scope.start.title && $scope.start.title.split("-")[0] || '公交',
               _start
             );
             // window["IMap"].addOverlay(marker);

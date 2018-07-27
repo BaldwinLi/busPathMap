@@ -43,10 +43,27 @@ export const coordinatesOffsetList = {
 
 let $result, $center;
 const finalCallback = function (res) {
-  res &&
-    ($result.name =
-      (res.surroundingPois[0] && res.surroundingPois[0].title) ||
-      res.business.split(",")[0]);
+  switch ($scope.options.type) {
+    case "BUS_STATION":
+      // $result = {
+      //   pois: []
+      // };
+      // if (res) {
+      //   for (let i = 0; i < res.getCurrentNumPois(); i++) {
+      //     const _result = res.getPoi(i);
+      //     !$result.title && ($result.title = _result.title);
+      //     $result.pois.push(_result);
+      //   }
+      // }
+      res && ($result.name = res.getPoi(0) && res.getPoi(0).title);
+      break;
+    default:
+      res &&
+        ($result.name =
+          (res.surroundingPois[0] && res.surroundingPois[0].title) ||
+          res.business.split(",")[0]);
+  }
+
   $scope.$emit("onGeolocationComplete", $result);
   $scope.updateLoadingStatus({
     isLoading: false
@@ -88,13 +105,27 @@ const translateCallback = function (data) {
     switch ($scope.options.type) {
       case "BUS_STATION":
         $scope.start.point = $scope.currentPoint;
-        $scope.location.searchNearby($result.name, $scope.start.point);
-    }
-    if (!$result.name) {
-      $scope.geoc.getLocation($scope.currentPoint, finalCallback);
-    } else {
-      // $scope.geoc.getLocation(data.points[0], finalCallback);
-      finalCallback();
+        // const _location = new BMap.LocalSearch($scope.currentPoint, {
+        //   renderOptions:
+        //     ($scope.options.type === "BUS_STATION" && {
+        //       map: IMap
+        //       // panel: "path-result"
+        //     }) || {},
+        //   // $scope.options.type === "BUS_STATION" ? 100 : 
+        //   pageCapacity: 10,
+        //   onSearchComplete: finalCallback
+        // });
+        // _location.searchNearby('公交', $scope.start.point);
+        $scope.location.searchNearby('公交', $scope.start.point);
+        $scope.$emit("onGeolocationComplete", $result);
+        break;
+      default:
+        if (!$result.name) {
+          $scope.geoc.getLocation($scope.currentPoint, finalCallback);
+        } else {
+          // $scope.geoc.getLocation(data.points[0], finalCallback);
+          finalCallback();
+        }
     }
   }
   // this.location.searchNearby("", this.start.point);
@@ -279,14 +310,15 @@ export const initLocation = function () {
         map: IMap
         // panel: "path-result"
       }) || {},
-    pageCapacity: $scope.options.type === "BUS_STATION" ? 100 : 10,
+    // $scope.options.type === "BUS_STATION" ? 100 :
+    pageCapacity: 10,
     onMarkersSet: $scope.onMarkersSet,
     onResultsHtmlSet: $scope.onResultsHtmlSet,
     onSearchComplete: $scope.onLocalSearchComplete
   });
 };
 
-export const judgeHasDetail = function() {
+export const judgeHasDetail = function () {
   $scope.hasDetailHtml = true;
   setTimeout(() => {
     $($scope.$refs['pathResult']).children('*').length === 0 && ($scope.hasDetailHtml = false);

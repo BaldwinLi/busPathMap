@@ -34,7 +34,7 @@
       :pluginOptions="commonPluginOptions"
       :height="-43"
       :showMap="showMap"
-      showPathResult="false"
+      :showPathResult="false"
       @onLoadComplete="loadComplete"
       @onBusLineSearchComplete="onBusLineSearchComplete"
       @onGetBusLineComplete="onGetBusLineComplete"
@@ -52,8 +52,8 @@ import { loadWeChatSdk } from "@/helper/jssdk-loader";
 import { commonPluginOptions } from "@/components/map-config";
 import { storeBusLineKeyword } from "@/helper/utils";
 import { setTimeout } from "timers";
-let historyForwardBusline = [];
-let historyReverseBusline = [];
+let historyForwardBusline = storeBusLineKeyword().map(e => e.forward);
+let historyReverseBusline = storeBusLineKeyword().map(e => e.reverse);
 export default {
   components: {
     Search,
@@ -111,7 +111,7 @@ export default {
         this.busNum = this.$route.query["busNum"];
       }
     },
-    onGetBusLineComplete() {
+    onGetBusLineComplete(busline) {
       if (busline) {
         const stations = [];
         for (let i = 0; i < busline.getNumBusStations; i++) {
@@ -196,10 +196,9 @@ export default {
       const scope = this;
       !this.busNum &&
         setTimeout(() => {
-          scope.searchResults = historyForwardBusline = storeBusLineKeyword().map(
+          scope.searchResults =  scope.forwardLineList = historyForwardBusline = storeBusLineKeyword().map(
             v => v.forward
           );
-          scope.forwardLineList = storeBusLineKeyword().map(v => v.forward);
           scope.reverseLineList = historyReverseBusline = storeBusLineKeyword().map(
             v => v.reverse
           );
