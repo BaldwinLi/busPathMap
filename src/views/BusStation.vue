@@ -196,7 +196,7 @@ export default {
       this.$refs["mapContainer"].getCurrentPosition();
     },
     selectStops(item) {
-      
+      this.busList = [];
       this.upd
       const busNumList = [];
       item.address
