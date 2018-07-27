@@ -19,7 +19,7 @@ export const storePositionKeyword = (keyword) => {
 export const storeBusLineKeyword = (keyword) => {
   const buslines = JSON.parse(window.localStorage.getItem('busline_history') || '[]');
   if (keyword) {
-    const hasKeyword = buslines.length > 0 && buslines.some(e => e.forward === keyword.forword);
+    const hasKeyword = buslines.length > 0 && buslines.some(e => e.forward.title === keyword.forward.title);
     if (!hasKeyword) {
       buslines.push(keyword);
       window.localStorage.setItem('busline_history', JSON.stringify(buslines));

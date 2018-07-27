@@ -3,7 +3,7 @@
     <div ref="mapContainer" v-show="showMap" id="map-container"></div>
     <div ref="pathResult" v-show="showPathResult && hasDetailHtml" id="path-result">
     </div>
-    <divider v-show="!hasDetailHtml" style="color: #999; font-size: 1.4rem;">
+    <divider v-show="!hasDetailHtml && showPathResult" style="color: #999; font-size: 1.4rem;">
         暂无路线详情
       </divider>
   </div>

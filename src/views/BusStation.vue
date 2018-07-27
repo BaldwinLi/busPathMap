@@ -17,7 +17,7 @@
           @on-cancel="isCanceled = true"
           @result-click="setBusPoi"
           :results="searchResults"
-          @on-submit="searchWord = searchText"
+          @on-submit="onSubmit"
           ref="search">
           <a slot="left" style="width: 10rem; font-size: 1.3rem; line-height: 2.7rem;" @click="scanQRCode">站点扫一扫 <i style="font-size: 1.4rem;" class="iconfont icon-scan"></i></a>
           <a slot="right" v-show="isCanceled" class="iconfont icon-global_geo geo-setter" @click="setCurrentGeo"></a>
@@ -154,21 +154,25 @@ export default {
       // this.isHref && this.selectBusline(this.busLineNum, true);
       this.isHref = false;
     },
+    onSubmit() {
+      this.searchWord = this.searchText;
+      storeBusStationKeyword({title: this.searchText});
+    },
     setBusPoi(val) {
-      val = val || this.searchResults[0];
-      this.start = val;
-      this.searchWord = val.title;
-      const _busList = val.address.split("; ");
-      this.busList = this.busList.concat(_busList);
-      document.activeElement.blur();
-      this.cancelSearch();
-      storeBusStationKeyword(val);
-      this.cancelSearch();
+      // val = val || this.searchResults[0];
+      // this.start = val;
+      this.searchText =this.searchWord = val.title;
+      // const _busList = val.address.split("; ");
+      // this.busList = this.busList.concat(_busList);
+      // document.activeElement.blur();
+      // this.cancelSearch();
+      // storeBusStationKeyword(val);
+      // this.cancelSearch();
     },
     onFocus() {
       const scope = this;
       this.isCanceled = false;
-      !this.searchWord &&
+      !this.searchText &&
         setTimeout(() => {
           scope.searchResults = storeBusStationKeyword();
         });

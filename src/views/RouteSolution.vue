@@ -376,6 +376,7 @@ export default {
         this.end = result;
       }
       this.isNeedToClear = true;
+      this.relocate();
     },
     onRouteTypeClick(index) {
       switch (index) {

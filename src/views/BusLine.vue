@@ -40,20 +40,37 @@
       @onGetBusLineComplete="onGetBusLineComplete"
       @onGeolocationComplete="onGeolocationComplete">
     </map-container>
+    <card v-show="showPathResult">
+      <div slot="header" class="weui-panel__hd card-header">
+          {{buslineDetail.name}}
+      </div>
+      <div slot="content" class="card-flex">
+        <div>
+          <busline :color="'#BEBEBE'">
+            <busline-item v-for="(item, index) in buslineDetail.stations" :key="index">
+				      <h4 class="recent"></h4>
+              <p class="busline-time">{{item.name}}</p>
+			      </busline-item>
+          </busline>
+        </div>
+      </div>
+    </card>
   </div>
 </template>
 
 <script>
 import { forEach, cloneDeep, trim } from "lodash";
-import { Cell, Search, Tab, TabItem, Card, Timeline } from "vux";
+import { Cell, Search, Tab, TabItem, Card } from "vux";
 import { mapMutations } from "vuex";
 import MapContainer from "@/components/map-container";
+import Busline from "@/components/busline/busline";
+import BuslineItem from "@/components/busline/busline-item";
 import { loadWeChatSdk } from "@/helper/jssdk-loader";
 import { commonPluginOptions } from "@/components/map-config";
 import { storeBusLineKeyword } from "@/helper/utils";
 import { setTimeout } from "timers";
-let historyForwardBusline = storeBusLineKeyword().map(e => e.forward);
-let historyReverseBusline = storeBusLineKeyword().map(e => e.reverse);
+let historyForwardBusline;
+let historyReverseBusline;
 export default {
   components: {
     Search,
@@ -62,7 +79,8 @@ export default {
     Tab,
     TabItem,
     Card,
-    Timeline
+    Busline,
+    BuslineItem
   },
   data() {
     return {
@@ -114,7 +132,7 @@ export default {
     onGetBusLineComplete(busline) {
       if (busline) {
         const stations = [];
-        for (let i = 0; i < busline.getNumBusStations; i++) {
+        for (let i = 0; i < busline.getNumBusStations(); i++) {
           const station = busline.getBusStation(i);
           stations.push({
             name: station.name,
@@ -196,7 +214,7 @@ export default {
       const scope = this;
       !this.busNum &&
         setTimeout(() => {
-          scope.searchResults =  scope.forwardLineList = historyForwardBusline = storeBusLineKeyword().map(
+          scope.searchResults = scope.forwardLineList = historyForwardBusline = storeBusLineKeyword().map(
             v => v.forward
           );
           scope.reverseLineList = historyReverseBusline = storeBusLineKeyword().map(
@@ -228,6 +246,11 @@ export default {
   mounted() {
     this.updateTitle("公交线路查询");
     window["IMap"] && this.$autoGetCurrentPosition();
+    historyForwardBusline = storeBusLineKeyword().map(e => e.forward);
+    historyReverseBusline = storeBusLineKeyword().map(e => e.reverse);
+    this.searchResults = cloneDeep(historyForwardBusline);
+    this.forwardLineList = cloneDeep(historyForwardBusline);
+    this.everseLineList = cloneDeep(historyReverseBusline);
   }
 };
 </script>
@@ -247,5 +270,10 @@ export default {
   z-index: 7;
   left: 7%;
   margin: 1rem auto;
+}
+
+.busline-time {
+  font-size: 2rem;
+  margin-left: 2rem;
 }
 </style>
