@@ -20,7 +20,7 @@
           @on-submit="onSubmit"
           ref="search">
           <a slot="left" style="width: 10rem; font-size: 1.3rem; line-height: 2.7rem;" @click="scanQRCode">站点扫一扫 <i style="font-size: 1.4rem;" class="iconfont icon-scan"></i></a>
-          <a slot="right" v-show="isCanceled" class="iconfont icon-global_geo geo-setter" @click="setCurrentGeo"></a>
+          <a slot="right" v-show="isCanceled" class="iconfont icon-msnui-foresight geo-setter" @click="setCurrentGeo"></a>
       <!-- cancel-text="搜索" -->
       <!-- <i slot="left" v-if="!isShowList" @click="hideList" class="fa fa-angle-left" style="font-size: 2.5rem; margin-right: 1rem;" aria-hidden="true"></i> -->
         </search>
@@ -38,14 +38,14 @@
       @onGeolocationComplete="onGeolocationComplete"
       @onBusLineSearchComplete="onBusLineSearchComplete">
     </map-container>
-    <flexbox orient="vertical" v-show="showPathResult" :gutter="0" style="position: absolute; top: 50px;">
+    <flexbox orient="vertical" v-show="showPathResult" :gutter="8" style="position: absolute; top: 50px;">
       <flexbox-item v-for="(item, index) in busStopsList" :key="index">
-        <card @click.native="selectStops(item)">
+        <card @click.native="selectStops(item)" class="item-card">
           <div slot="header" class="weui-panel__hd card-header">
-            {{item.title}}
+            {{item.title}} <div class="right-side"><i class="iconfont icon-dingwei"></i>{{item.distance + 'm'}}</div>
           </div>
           <div slot="content" class="card-flex">
-            {{item.address}}
+            <i class="iconfont icon-gongjiao header-icon-size"></i>{{item.address}}
           </div>
         </card>
         <!-- <cell primary="title" class="search-field" style="background-color: #fff;" :title="item.title" is-link @click.native="selectStops(item)">
@@ -55,13 +55,16 @@
     </flexbox>
     <flexbox orient="vertical" v-show="showBusLine" :gutter="0" style="position: absolute; top: 50px;">
       <flexbox-item v-for="(item, index) in busList" :key="index">
-        <card @click.native="selectBusline(item)">
+        <card @click.native="selectBusline(item)" class="item-card">
           <div slot="header" class="weui-panel__hd card-header">
-            {{item.title}}
+            <i class="iconfont icon-gongjiao header-icon-size"></i>{{item.title}}
           </div>
           <div slot="content" class="card-flex">
-            <p>{{item.forward.split("(")[1].replace(/\)+$/, "")}}</p>
-            <p>{{item.reverse.split("(")[1].replace(/\)+$/, "")}}</p>
+            <div style="float: left;padding-bottom: 10px;">
+              <p>{{item.forward.split("(")[1].replace(/\)+$/, "")}}</p>
+              <p>{{item.reverse.split("(")[1].replace(/\)+$/, "")}}</p>
+            </div>
+            <div class="right-side"><i style="font-size: 3rem; color:#000;" class="iconfont icon-dingwei"></i></div>
           </div>
         </card>
         <!-- <cell primary="title" class="search-field" style="background-color: #fff;" :title="item" is-link @click.native="selectBusline(item)"></cell> -->
@@ -116,7 +119,13 @@ export default {
   },
   methods: {
     onPoiChange(result) {
-      result && (this.busStopsList = result);
+      result &&
+        (this.busStopsList = result.map(v => {
+          v.distance = window["IMap"]
+            .getDistance(this.$refs["mapContainer"].currentPoint, v.point)
+            .toFixed(0);
+          return v;
+        }));
       this.searchText = result[0].title;
       if (
         result[0].point.lng !== this.start.point.lng ||
@@ -156,12 +165,12 @@ export default {
     },
     onSubmit() {
       this.searchWord = this.searchText;
-      storeBusStationKeyword({title: this.searchText});
+      storeBusStationKeyword({ title: this.searchText });
     },
     setBusPoi(val) {
       // val = val || this.searchResults[0];
       // this.start = val;
-      this.searchText =this.searchWord = val.title;
+      this.searchText = this.searchWord = val.title;
       // const _busList = val.address.split("; ");
       // this.busList = this.busList.concat(_busList);
       // document.activeElement.blur();
@@ -197,7 +206,7 @@ export default {
     },
     selectStops(item) {
       this.busList = [];
-      this.upd
+      this.upd;
       const busNumList = [];
       item.address
         .split("; ")
@@ -307,5 +316,39 @@ export default {
   /* position: fixed; */
   z-index: 7;
   /* margin: 1rem auto; */
+}
+
+.item-card {
+  margin: 1rem;
+  border: 1px solid #9999;
+  border-radius: 10px;
+}
+.item-card .card-header {
+  color: #000;
+  font-size: 2rem;
+}
+.item-card .right-side {
+  float: right;
+  font-size: 1.5rem;
+}
+.item-card .right-side > i {
+  font-size: 2rem;
+}
+
+.item-card .card-header .header-icon-size {
+  color: #04be02;
+  font-size: 2rem;
+  margin-right: 0.5rem;
+}
+
+.item-card .card-flex {
+  color: #9999;
+  font-size: 1.5rem;
+  padding: 14px 15px 10px;
+}
+.item-card .card-flex .header-icon-size {
+  color: #04be02;
+  font-size: 1.5rem;
+  margin-right: 0.5rem;
 }
 </style>

@@ -30,8 +30,8 @@
         @on-cancel="onCancel"
         ref="startSearch">
           <i slot="left" class="iconfont icon-pointerbig position-label start"></i>
-          <a slot="right" class="iconfont icon-global_geo geo-setter"
-             style="right: -3rem;" @click="setCurrentGeo"></a>
+          <a slot="right" class="iconfont icon-msnui-foresight geo-setter"
+             style="right: 0;" @click="setCurrentGeo"></a>
           <a slot="right" v-show="showStartYulin" class="iconfont icon-yuyin geo-setter start-search" style="font-size: 2.5rem; margin: 0;"
              v-touch:touchstart="startRecord" v-touch:touchend="stopRecord"></a>
         </search>

@@ -66,7 +66,7 @@
         </cell>
         <div>
           <busline :color="'#BEBEBE'">
-            <busline-item v-for="(item, index) in buslineDetail.stations" :key="index" :stopNum="index" :onTheRoute="item.onTheRoute"
+            <busline-item v-for="(item, index) in buslineDetail.stations" :key="index" :stopNum="index" :onTheRoute="busCrowdConfig[item.onTheRoute]"
             @click.native="selectBusPathStation(item, index)">
               <p class="busline-time">{{item.name}}</p>
               <x-button mini type="primary" 
@@ -181,9 +181,9 @@ export default {
         for (let i = 0; i < busline.getNumBusStations(); i++) {
           const station = busline.getBusStation(i);
           let onTheRoute;
-          if (i === 5) {
-            onTheRoute = "#00FF00";
-          }
+          if (i === 5) onTheRoute = 0; 
+          else if (i === 3) onTheRoute = 2;
+          else if (i === 7) onTheRoute = 1;
           stations.push({
             onTheRoute,
             name: station.name,

@@ -5,7 +5,7 @@
             <i v-show="!isSelect" class="vux-busline-item-text">{{stopNum}}</i>
         </div>
 		<div class="vux-busline-item-tail" :style="tailStyle">
-            <i v-show="!!onTheRoute" class="vux-busline-item-onroute iconfont icon-gongjiao"></i>
+            <i v-show="!!onTheRoute" class="vux-busline-item-onroute iconfont icon-gongjiao" :style="{backgroundColor: onTheRoute}"></i>
         </div>
 		<div class="vux-busline-item-content">
 			<slot></slot>
