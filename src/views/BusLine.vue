@@ -42,9 +42,28 @@
     </map-container>
     <card v-show="showPathResult">
       <div slot="header" class="weui-panel__hd card-header">
-          {{buslineDetail.name}}
+          <p class="busline-header">{{buslineDetail.name}}</p>
+          <p class="busline-header">{{buslineDetail.lineName}}</p>
+          <p class="busline-sub">{{buslineDetail.company}}</p>
+          <p class="busline-time">
+            <span class="start-time">{{buslineDetail.startTime}}</span>
+            <span class="end-time">{{buslineDetail.endTime}}</span>
+          </p>
       </div>
       <div slot="content" class="card-flex">
+        <cell primary="title">
+          <div slot="title" style="display: inline-flex; width: 100%">
+            <span class="realtime-bus" v-for="(item, index) in realtimeBuses" :key="index">
+              <div><i :style="{'background-color': busCrowdConfig[item.crowd]}" class="item-onroute iconfont icon-gongjiao"></i>{{item.stops + '站'}}</div>
+              <div>{{item.distance + '公里'}}</div>
+            </span>
+          </div>
+          <div>
+            <div class="crowd-desc loose">宽松</div>
+            <div class="crowd-desc comfort">舒适</div>
+            <div class="crowd-desc crowd">拥挤</div>
+          </div>
+        </cell>
         <div>
           <busline :color="'#BEBEBE'">
             <busline-item v-for="(item, index) in buslineDetail.stations" :key="index" :stopNum="index" :onTheRoute="item.onTheRoute"
@@ -67,7 +86,7 @@
 
 <script>
 import { forEach, cloneDeep, trim, map } from "lodash";
-import { Cell, Search, Tab, TabItem, Card, XButton } from "vux";
+import { Cell, CellBox, Search, Tab, TabItem, Card, XButton } from "vux";
 import { mapMutations } from "vuex";
 import MapContainer from "@/components/map-container";
 import Busline from "@/components/busline/busline";
@@ -82,6 +101,7 @@ export default {
   components: {
     Search,
     Cell,
+    CellBox,
     MapContainer,
     Tab,
     TabItem,
@@ -97,6 +117,7 @@ export default {
         showType: "MAP_RESULT",
         policy: 0
       },
+      busCrowdConfig: ["#00ff00", "#FFA500", "#EE2C2C"],
       busNum: "",
       showMap: true,
       showPathResult: false,
@@ -105,7 +126,24 @@ export default {
       forwardLineList: cloneDeep(historyForwardBusline),
       reverseLineList: cloneDeep(historyReverseBusline),
       fstLine: {},
-      buslineDetail: {}
+      buslineDetail: {},
+      realtimeBuses: [
+        {
+          distance: 2,
+          stops: 6,
+          crowd: 0
+        },
+        {
+          distance: 3,
+          stops: 7,
+          crowd: 2
+        },
+        {
+          distance: 3.6,
+          stops: 8,
+          crowd: 0
+        }
+      ]
     };
   },
   methods: {
@@ -153,8 +191,10 @@ export default {
           });
         }
         // stations.$set(0, { childMsg: 'Changed!'});
+        const _busline = busline.name;
         this.buslineDetail = {
-          name: busline.name,
+          name: _busline.split("(")[0],
+          lineName: _busline.split("(")[1].replace(/\)+$/, ""),
           company: busline.company,
           startTime: busline.startTime,
           endTime: busline.endTime,
@@ -260,7 +300,7 @@ export default {
         return e;
       });
     },
-    setReminder (item, index) {
+    setReminder(item, index) {
       item.reminder = !item.reminder;
       this.$set(this.buslineDetail.stations, index, item);
     },
@@ -307,5 +347,81 @@ export default {
   height: 30px;
   top: 1.5rem;
   right: 1rem;
+}
+
+.busline-header {
+  font-size: 2rem;
+  color: #000;
+}
+
+.busline-sub {
+  font-size: 1rem;
+  color: #9999;
+}
+
+.busline-time > div {
+  float: left;
+  margin: 1rem;
+}
+.start-time:before {
+  content: "首";
+  background-color: #00CD66;
+  color: #fff;
+  font-size: 1.5rem;
+  margin: 3px;
+}
+
+.end-time:before {
+  content: "末";
+  background-color: #ff6a6a;
+  color: #fff;
+  font-size: 1.5rem;
+  margin: 3px;
+}
+
+.realtime-bus {
+  float: left;
+  text-align: center;
+  font-size: 1.5rem;
+  flex: 1;
+}
+
+.realtime-bus .item-onroute {
+  z-index: 99;
+  display: inline-block;
+  background-color: #00ff00;
+  border-radius: 99px;
+  left: -9px;
+  top: 25px;
+  width: 20px;
+  height: 18px;
+  font-size: 13px;
+  text-align: center;
+  color: #fff;
+}
+
+.crowd-desc.loose:before {
+  content: " ";
+  display: inline-block;
+  height: 8px;
+  width: 17px;
+  margin-right: 3px;
+  background-color: #00ff00;
+}
+.crowd-desc.comfort:before {
+  content: " ";
+  display: inline-block;
+  height: 8px;
+  width: 17px;
+  margin-right: 3px;
+  background-color: #ffa500;
+}
+.crowd-desc.crowd:before {
+  content: " ";
+  display: inline-block;
+  height: 8px;
+  width: 17px;
+  margin-right: 3px;
+  background-color: #ee2c2c;
 }
 </style>

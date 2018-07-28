@@ -1,4 +1,13 @@
-* { touch-action: none; }
+* {
+  touch-action: none;
+}
+
+.vux-label {
+  display: inline-block;
+  word-wrap: break-word;
+  word-break: break-all;
+  width: 100%;
+}
 
 /* .weui-search-bar__form {
     position: relative;
