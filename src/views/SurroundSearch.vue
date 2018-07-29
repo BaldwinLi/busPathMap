@@ -120,6 +120,7 @@ export default {
   },
   mounted() {
     this.updateTitle("周边");
+     window["IMap"] && this.$autoGetCurrentPosition();
   }
 };
 </script>

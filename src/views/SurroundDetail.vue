@@ -1,11 +1,20 @@
 <template>
   <div>
-   <card class="item-card">
+   <card class="item-card" style="margin-top: 1rem;">
           <div slot="header" class="weui-panel__hd card-header">
-            {{msg.title}} <div class="right-side"><i class="iconfont icon-dingwei"></i>{{msg.distance + 'm'}}</div>
+            {{msg.title}} <div class="right-side"><i class="iconfont icon-dingwei"></i>{{msg.distance && (msg.distance + 'm')}}</div>
           </div>
           <div slot="content" class="card-flex">
-            <p v-if="msg.phoneNumber">联系电话：<a :href="'tel:'+msg.phoneNumber">{{msg.phoneNumber}}</a></p>
+            <div v-if="msg.phoneNumber">
+              <label style="float: left; width: 30%;">联系电话：</label>
+              <div style="float: left; width: 70%;">
+                <p v-for="(num, index) in (msg.phoneNumber && msg.phoneNumber.split(',') || [])" :key="index">
+                  <a :href="'tel:'+num">
+                    <i class="iconfont icon-weibiaoti-" style="color: #04be02;"></i>{{num}}
+                  </a>
+                </p>
+              </div>
+            </div>
             <p v-if="msg.address">地址：{{msg.address}}</p>
             <p v-if="msg.postcode">邮编：{{msg.postcode}}</p>
           </div>
@@ -59,7 +68,7 @@ export default {
       // );
       this.start = {
         point: this.$refs["mapContainer"].currentPoint
-      }
+      };
       this.end = {
         title: this.msg.title,
         point: {
@@ -72,7 +81,7 @@ export default {
   },
   mounted() {
     this.$route.query && (this.msg = this.$route.query);
-    this.updateTitle({ title: this.msg.title });
+    this.updateTitle(this.msg.title);
     window["IMap"] && this.$autoGetCurrentPosition();
   }
 };
@@ -80,6 +89,7 @@ export default {
 
 <style scoped>
 .item-card {
+  width: 94%;
   margin: 1rem;
   border: 1px solid #9999;
   border-radius: 10px;
