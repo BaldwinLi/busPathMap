@@ -87,14 +87,14 @@
 <script>
 import { forEach, cloneDeep, trim, map } from "lodash";
 import { Cell, CellBox, Search, Tab, TabItem, Card, XButton } from "vux";
-import { mapMutations } from "vuex";
+import { mapMutations, mapGetters } from "vuex";
 import MapContainer from "@/components/map-container";
 import Busline from "@/components/busline/busline";
 import BuslineItem from "@/components/busline/busline-item";
 import { loadWeChatSdk } from "@/helper/jssdk-loader";
 import { commonPluginOptions } from "@/components/map-config";
 import { storeBusLineKeyword } from "@/helper/utils";
-import { setTimeout } from "timers";
+import { setTimeout, setInterval, clearInterval } from "timers";
 let historyForwardBusline;
 let historyReverseBusline;
 export default {
@@ -143,8 +143,12 @@ export default {
           stops: 8,
           crowd: 0
         }
-      ]
+      ],
+      intervalInstance: null
     };
+  },
+  computed: {
+    ...mapGetters(['appContextPath'])
   },
   methods: {
     onBusLineSearchComplete(event) {
@@ -201,6 +205,17 @@ export default {
           stations
         };
         this.busNum = busline.name;
+        const params = $.param({
+          v_line_uuid: busline.name.match(/^\d+/)[0],
+          v_line_dir: busline.dir,
+          // v_line_bdid: ''
+        });
+        this.intervalInstance = setInterval(() => {
+          this.$http.post(`${this.appContextPath}oneBusStation`, params).then(result => {
+            const buslist = result.data.responseBody || [];
+          });
+        }, 3000);
+        
       }
     },
     setBusLine(val) {
@@ -315,6 +330,9 @@ export default {
     this.searchResults = cloneDeep(historyForwardBusline);
     this.forwardLineList = cloneDeep(historyForwardBusline);
     this.everseLineList = cloneDeep(historyReverseBusline);
+  },
+  destroyed() {
+    this.intervalInstance && clearInterval(this.intervalInstance);
   }
 };
 </script>

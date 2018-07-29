@@ -6,6 +6,8 @@ import BusLine from '@/views/BusLine'
 import BusStation from '@/views/BusStation'
 import TrafficReffer from '@/views/TrafficReffer'
 import TrafficDetail from '@/views/TrafficDetail'
+import StopDetail from '@/views/StopDetail'
+import SurroundSearch from '@/views/SurroundSearch'
 
 Vue.use(Router)
 
@@ -40,5 +42,15 @@ export default new Router({
       name: 'TrafficDetail',
       component: TrafficDetail
     },
+    {
+      path: '/stop_detail',
+      name: 'StopDetail',
+      component: StopDetail
+    },
+    {
+      path: '/surround_search',
+      name: 'surround_search',
+      component: SurroundSearch
+    }
   ]
 })

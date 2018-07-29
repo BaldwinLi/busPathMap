@@ -5,10 +5,10 @@
       <tab-item @on-item-click="trigger" >公共交通</tab-item>
       <tab-item @on-item-click="trigger">城际出行</tab-item>
     </tab>
-    <div v-for="item in list" class="box" >
+    <div v-for="(item, index) in list" :key="index" class="box" >
       <h1>{{item.time}}</h1>
       <ul>
-        <li v-for="i in item.data" @click="detail(i.id)">
+        <li v-for="(i, index) in item.data" :key="index" @click="detail(i.id)">
           <img src="" />
           <div>{{i.title}}</div>
         </li>
@@ -19,6 +19,7 @@
 
 <script>
 import { XButton, Box, Sticky, Tab, TabItem } from "vux";
+import { mapMutations, mapGetters } from "vuex";
 
 export default {
   components: {
@@ -49,7 +50,9 @@ export default {
       ]
     };
   },
-  mounted() {},
+  computed: {
+    ...mapGetters(['appContextPath'])
+  },
   methods: {
     trigger(results) {},
 
@@ -60,7 +63,11 @@ export default {
           id: id
         }
       });
-    }
+    },
+    ...mapMutations(["updateTitle"])
+  },
+  mounted() {
+    this.updateTitle("交通资讯");
   }
 };
 </script>
@@ -78,8 +85,8 @@ export default {
    border-bottom: 1px solid #ddd;
 }
 
-.box ul {
-}
+/* .box ul {
+} */
 
 .box ul li {
   list-style: none;

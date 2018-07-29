@@ -41,7 +41,8 @@ export default {
       poiList: [],
       directSetBusLine: false,
       viaStopsStr: "",
-      hasDetailHtml: true
+      hasDetailHtml: true,
+      direction: 0
     };
   },
   components: {
@@ -127,7 +128,7 @@ export default {
       let numberMatch;
       if (val && Number(val)) {
         $scope.busline.getBusList(val);
-      } else if (val && (numberMatch = val.match(/\d+/))) {
+      } else if (val && (numberMatch = val.match(/^\d+/))) {
         this.directSetBusLine = true;
         $scope.busline.getBusList(numberMatch && numberMatch[0]);
       }
@@ -167,7 +168,8 @@ export default {
           case "BUS_STATION":
             // var marker = new BMap.Marker(_start); // 创建标注
             this.location.searchNearby(
-              $scope.start.title && $scope.start.title.split("-")[0] || '公交',
+              ($scope.start.title && $scope.start.title.split("-")[0]) ||
+                "公交",
               _start
             );
             // window["IMap"].addOverlay(marker);
@@ -213,12 +215,21 @@ export default {
               ? poi.type === BMAP_POI_TYPE_BUSSTOP
               : true;
           if (toFilter) {
+            const _point = new BMap.Point(poi.point.lng, poi.point.lat);
+            poi.distance = window["IMap"]
+              .getDistance(this.currentPoint, _point)
+              .toFixed(0);
             this.poiList.push(
               toFilter
                 ? poi
                 : {
                     title: poi.title,
-                    point: new BMap.Point(poi.point.lng, poi.point.lat)
+                    point: _point,
+                    address: poi.address,
+                    phoneNumber: poi.phoneNumber,
+                    postcode: poi.postcode,
+                    tags: poi.tags,
+                    distance: poi.distance
                   }
             );
           }
@@ -240,6 +251,7 @@ export default {
             const _busline = result.getBusListItem(i);
             if (_busline.name === this.busNum) {
               item = _busline;
+              this.direction = i;
               this.busline.getBusLine(item);
             }
           }
@@ -360,6 +372,7 @@ export default {
     },
     onGetBusLineComplete(busLine) {
       this.judgeHasDetail();
+      busLine.dir = this.direction;
       this.$emit("onGetBusLineComplete", busLine);
       this.updateLoadingStatus({ isLoading: false });
     },

@@ -76,7 +76,7 @@
 <script>
 import { forEach, cloneDeep } from "lodash";
 import { Card, Search, Tab, TabItem, Flexbox, FlexboxItem } from "vux";
-import { mapMutations } from "vuex";
+import { mapMutations, mapGetters } from "vuex";
 import { loadWeChatSdk, scanWxQRCode } from "@/helper/jssdk-loader";
 import MapContainer from "@/components/map-container";
 import { commonPluginOptions } from "@/components/map-config";
@@ -116,6 +116,9 @@ export default {
       isHref: false,
       busStopsList: []
     };
+  },
+  computed: {
+    ...mapGetters(["appContextPath"])
   },
   methods: {
     onPoiChange(result) {
@@ -262,7 +265,16 @@ export default {
       // this.$refs.mapContainer.busline.getBusLine(result.getBusListItem(0));
     },
     scanQRCode() {
-      scanWxQRCode();
+      scanWxQRCode({
+        needResult: 1
+      }).then(res => {
+        this.$http.post(`${this.appContextPath}getHct`, `md5=${res}`, data => {
+          this.$router.push({
+            path: "stop_detail",
+            query: data
+          });
+        });
+      });
     },
     relocate() {
       const params = $.param({
