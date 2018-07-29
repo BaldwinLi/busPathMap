@@ -8,6 +8,7 @@ import TrafficReffer from '@/views/TrafficReffer'
 import TrafficDetail from '@/views/TrafficDetail'
 import StopDetail from '@/views/StopDetail'
 import SurroundSearch from '@/views/SurroundSearch'
+import SurroundDetail from '@/views/SurroundDetail'
 
 Vue.use(Router)
 
@@ -51,6 +52,11 @@ export default new Router({
       path: '/surround_search',
       name: 'surround_search',
       component: SurroundSearch
+    },
+    {
+      path: '/surround_detail',
+      name: 'surround_detail',
+      component: SurroundDetail
     }
   ]
 })

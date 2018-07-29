@@ -140,7 +140,7 @@ export default {
     startText(val, old) {
       // $scope.busline.getBusList(3);
       // $scope.transit.search(val, $scope.end);
-      if (val && $scope.location.search) {
+      if (val && $scope.location) {
         this.updateLoadingStatus({ isLoading: true });
         $scope.poiList.length = 0;
         $scope.location.search(val);

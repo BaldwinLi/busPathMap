@@ -13,6 +13,9 @@
       <router-link to="/traffic_reffer">
         <x-button plain :gradients="['#EEC900', '#1aad19']" type="primary" class="x-button-style">交通资讯</x-button>
       </router-link>
+      <router-link to="/surround_search">
+        <x-button plain :gradients="['#EEC900', '#1aad19']" type="primary" class="x-button-style">周边</x-button>
+      </router-link>
     </box>
   </div>
 </template>

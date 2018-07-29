@@ -5,10 +5,10 @@
           <i class="iconfont icon-gongjiao header-icon-size"></i>公交站
       </tab-item>
       <tab-item :selected="showFoods" @on-item-click="onItemClick">
-          <i class="iconfont icon-gongjiao header-icon-size"></i>美食
+          <i class="iconfont icon-meishi header-icon-size"></i>美食
       </tab-item>
       <tab-item :selected="showScenics" @on-item-click="onItemClick">
-          <i class="iconfont icon-gongjiao header-icon-size"></i>景点
+          <i class="iconfont icon-jingdian header-icon-size"></i>景点
       </tab-item>
     </tab>
     <flexbox orient="vertical" :gutter="8" style="position: absolute; top: 50px;">
@@ -18,7 +18,11 @@
             {{item.title}} <div class="right-side"><i class="iconfont icon-dingwei"></i>{{item.distance + 'm'}}</div>
           </div>
           <div slot="content" class="card-flex">
-            <i class="iconfont icon-gongjiao header-icon-size"></i>{{item.address}}
+            <i class="iconfont header-icon-size" :class="{
+                'icon-gongjiao': showStops,
+                'icon-meishi': showFoods,
+                'icon-jingdian': showScenics
+                }"></i>{{item.address}}
           </div>
         </card>
         <!-- <cell primary="title" class="search-field" style="background-color: #fff;" :title="item.title" is-link @click.native="selectStops(item)">
@@ -32,7 +36,7 @@
       @onLoadComplete="loadComplete"
       @onGeolocationComplete="onGeolocationComplete"
       @onPoiChange="onPoiChange">
-      </map-container>
+    </map-container>
   </div>
 </template>
 
@@ -87,7 +91,31 @@ export default {
         this.$refs["mapContainer"].currentPoint
       );
     },
-    selectSpots(val) {},
+    selectSpots(val) {
+      if (this.showStops) {
+        this.$router.push({
+          path: "/bus_station",
+          query: {
+            searchWord: val.title,
+            lng: val.point.lng,
+            lat: val.point.lat
+          }
+        });
+      } else {
+        this.$router.push({
+          path: "/surround_detail",
+          query: {
+            title: val.title,
+            lng: val.point.lng,
+            lat: val.point.lat,
+            address: val.address,
+            phoneNumber: val.phoneNumber,
+            postcode: val.postcode,
+            distance: val.distance
+          }
+        });
+      }
+    },
     ...mapMutations(["updateTitle", "updateLoadingStatus"])
   },
   mounted() {

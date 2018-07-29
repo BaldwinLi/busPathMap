@@ -16,6 +16,7 @@
 
 <script>
 import { Card } from "vux";
+import { mapMutations } from "vuex";
 
 export default {
   components: {
@@ -31,8 +32,12 @@ export default {
       }
     };
   },
+  methods: {
+      ...mapMutations(["updateTitle", "updateLoadingStatus"])
+  },
   mounted() {
-    this.$router.query && (this.msg = this.$router.query);
+    this.updateTitle({title: '站点详情'})
+    this.$route.query && (this.msg = this.$route.query);
   },
   methods: {}
 };

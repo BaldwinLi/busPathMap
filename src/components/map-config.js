@@ -105,18 +105,10 @@ const translateCallback = function (data) {
     switch ($scope.options.type) {
       case "BUS_STATION":
         $scope.start.point = $scope.currentPoint;
-        // const _location = new BMap.LocalSearch($scope.currentPoint, {
-        //   renderOptions:
-        //     ($scope.options.type === "BUS_STATION" && {
-        //       map: IMap
-        //       // panel: "path-result"
-        //     }) || {},
-        //   // $scope.options.type === "BUS_STATION" ? 100 : 
-        //   pageCapacity: 10,
-        //   onSearchComplete: finalCallback
-        // });
-        // _location.searchNearby('公交', $scope.start.point);
-        $scope.location.searchNearby('公交', $scope.start.point);
+        if ($.isEmptyObject($scope.$parent.$route.query)) {
+          $scope.location.searchNearby('公交', $scope.start.point);
+          // this.isHref = true;
+        }
         $scope.$emit("onGeolocationComplete", $result);
         break;
       default:

@@ -156,12 +156,19 @@ export default {
       // }
     },
     onGeolocationComplete(val) {
-      // val = val || this.searchResults[0];
-      // this.start = this.isHref ? this.searchWord : val;
-      // this.searchWord = this.isHref ? this.searchWord : val.name;
-      // const _busList = val.address.split("; ");
-      // this.busStopsList = val.pois;
-      // this.busList = this.busList.concat(_busList);
+      if (!$.isEmptyObject(this.$route.query)) {
+        const _query = this.$route.query;
+        // this.searchWord = _query.searchWord;
+        this.searchText = _query.searchWord;
+        this.start = {
+          title: _query.searchWord,
+          point: {
+            lat: _query.lat,
+            lng: _query.lng
+          }
+        };
+        // this.isHref = true;
+      }
       this.isCanceled = false;
       // this.isHref && this.selectBusline(this.busLineNum, true);
       this.isHref = false;
@@ -278,9 +285,9 @@ export default {
     },
     relocate() {
       const params = $.param({
-        searchWord: this.searchText
-        // lat: this.start.point.lat,
-        // lng: this.start.point.lng,
+        searchWord: this.searchText,
+        lat: this.start.point.lat,
+        lng: this.start.point.lng
       });
       window.location.href = `${window.location.origin +
         window.location.pathname}#${this.$route.path}?${params}`;
@@ -292,16 +299,6 @@ export default {
   },
   beforeCreate() {},
   mounted() {
-    if (!$.isEmptyObject(this.$route.query)) {
-      const _query = this.$route.query;
-      this.searchWord = _query.searchWord;
-      this.searchText = _query.searchWord;
-      this.start.point = {
-        // lat: _query.lat,
-        // lng: _query.lng
-      };
-      this.isHref = true;
-    }
     this.updateTitle("公交站点查询");
     window["IMap"] && this.$autoGetCurrentPosition();
   }
