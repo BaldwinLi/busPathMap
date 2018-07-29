@@ -4,6 +4,8 @@ import Home from '@/views/Home'
 import RouteSolution from '@/views/RouteSolution'
 import BusLine from '@/views/BusLine'
 import BusStation from '@/views/BusStation'
+import TrafficReffer from '@/views/TrafficReffer'
+import TrafficDetail from '@/views/TrafficDetail'
 
 Vue.use(Router)
 
@@ -27,6 +29,16 @@ export default new Router({
       path: '/bus_station',
       name: 'BusStation',
       component: BusStation
-    }
+    },
+    {
+      path: '/traffic_reffer',
+      name: 'TrafficReffer',
+      component: TrafficReffer
+    },
+    {
+      path: '/traffic_detail',
+      name: 'TrafficDetail',
+      component: TrafficDetail
+    },
   ]
 })
