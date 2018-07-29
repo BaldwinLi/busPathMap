@@ -8,6 +8,9 @@ import TrafficReffer from '@/views/TrafficReffer'
 import TrafficDetail from '@/views/TrafficDetail'
 import StopDetail from '@/views/StopDetail'
 import SurroundSearch from '@/views/SurroundSearch'
+import Login from '@/views/Login'
+import Signin from '@/views/Signin'
+import ForgetPassword from '@/views/ForgetPassword'
 import SurroundDetail from '@/views/SurroundDetail'
 
 Vue.use(Router)
@@ -52,6 +55,21 @@ export default new Router({
       path: '/surround_search',
       name: 'surround_search',
       component: SurroundSearch
+    },
+    {
+      path: '/login',
+      name: 'Login',
+      component: Login
+    },
+    {
+      path: '/signin',
+      name: 'Signin',
+      component: Signin
+    },
+    {
+      path: '/forget_password',
+      name: 'ForgetPassword',
+      component: ForgetPassword
     },
     {
       path: '/surround_detail',
