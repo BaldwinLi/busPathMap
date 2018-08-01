@@ -10,7 +10,7 @@
           class="search-field"
           v-model="searchText"
           position="fixed"
-          placeholder="请输入公交站点名称"
+          placeholder="搜索您要查询的公交站点"
           top="0"
           v-show="showMap"
           @on-focus="onFocus()"

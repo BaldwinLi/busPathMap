@@ -9,7 +9,7 @@
       <h1>{{item.time}}</h1>
       <ul>
         <li v-for="(i, index) in item.data" :key="index" @click="detail(i.id)">
-          <img src="" />
+          <img :src="i.img" />
           <div>{{i.title}}</div>
         </li>
       </ul>
@@ -37,12 +37,12 @@ export default {
           data: [
             {
               id: "0",
-              img: "",
+              img: "static/th.jpg",
               title: "哈尔滨至牡丹江市客运专场即将建成 运行时间只需1个多小时"
             },
             {
               id: "1",
-              img: "",
+              img: "static/th_1.jpg",
               title: "哈尔滨至牡丹江市七座商务班车"
             }
           ]

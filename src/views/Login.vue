@@ -15,7 +15,7 @@
       </div>
     </box>
     <box gap="10px 10px">
-      <x-button type="primary" @click.native="login()">登陆</x-button>
+      <x-button type="primary" @click.native="login()">登 录</x-button>
     </box>
   </div>
 </template>

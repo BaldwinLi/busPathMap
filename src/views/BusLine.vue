@@ -10,7 +10,7 @@
       <search
           v-model="busNum"
           position="relative"
-          placeholder="请输入公交线路号"
+          placeholder="搜索您要查询的公交线路"
           auto-scroll-to-top
           top="0"
           @on-submit="setBusLine(0)"
